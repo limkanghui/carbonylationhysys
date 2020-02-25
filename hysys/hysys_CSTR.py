@@ -8,52 +8,28 @@ from others import create_excel_file, print_df_to_excel
 
 
 class CSTR:
-    def __init__(self, Hycase, column_name, sprd_name, max_iter=500):
+    def __init__(self, Hycase, reactor_name, sprd_name, max_iter=500):
         self.Hycase = Hycase
-        self.Reactor = Hycase.Flowsheet.Operations.Item(column_name)
+        self.Reactor = Hycase.Flowsheet.Operations.Item(reactor_name)
 
-        # Access to Column  objects
-        self.Specifications = self.ColumnFlowsheet.Specifications  # RR/BR/....
-        self.Operations = self.ColumnFlowsheet.Operations  # Main TS/Reboiler/Condenser
+        #Decision Variables
+        self.spreadsheetdata = Hycase.Flowsheet.Operations.Item(sprd_name)
+        self.inlettemp = self.spreadsheetdata.Cell('B2').CellValue
+        self.catalystweight = self.spreadsheetdata.Cell('B3').CellValue
+        self.residencetime = self.spreadsheetdata.Cell('B4').CellValue
+        self.reactorP = self.spreadsheetdata.Cell('B5').CellValue
 
-        # Access to optimization parameters
-        self.ColumnFlowsheet.MaximumIterations = max_iter  # if too large, will take very long for optimization
-        # Active Specs. Use object.GoalValue = XXX to modify spec value.
-        self.active_specs = [self.ColumnFlowsheet.ActiveSpecifications.Item(idx) for (idx, _) in enumerate(self.ColumnFlowsheet.ActiveSpecifications.Names)]
-        # Other decision variables for the column
-        # self.dv_number_of_trays = self.Main_Tower.NumberOfTrays
-        # self.Main_TS.SpecifyFeedLocation(self.FeedMainTS, max(round(specs[-1] * specs[-2]), 1))
-        self.sprd_pressure = Hycase.Flowsheet.Operations.Item(sprd_name)
-        self.max_trays = max_trays
-        # Setting up Material Stream objects
-        self.feed = [self.ColumnFlowsheet.FeedStreams.Item(x+1) for x in range(number_of_feed)]
+        #Constraints
+        self.vaporFrac = self.spreadsheetdata.Cell('B8').CellValue
+
+        #Objective
+        self.conversion = self.spreadsheetdata.Cell('D2').CellValue
 
         # Used to store all results evaulated from .solve_column to pickle save at the end of an optimization run
         self.data_store = []
 
-        if number_of_draws == 3:
-            self.partial_condenser = True
-            self.vap = self.ColumnFlowsheet.MaterialStreams.Item(4)
-            self.distillate = self.ColumnFlowsheet.MaterialStreams.Item(5)
-            self.btm = self.ColumnFlowsheet.MaterialStreams.Item(6)
-        else:
-            self.partial_condenser = False
-            self.vap = None
-            self.distillate = self.ColumnFlowsheet.MaterialStreams.Item(4)
-            self.btm = self.ColumnFlowsheet.MaterialStreams.Item(5)
+    def solve_reactor(self, DV_goals):
 
-        # Setting up energy streams
-        self.cond = self.ColumnFlowsheet.EnergyStreams.Item(0)
-        self.rebo = self.ColumnFlowsheet.EnergyStreams.Item(1)
-
-
-    def solve_column(self, active_spec_goals, del_p, rebo_p, number_of_trays, feed_frac):
-        '''
-        Input specs -> Set Hysys column according to specs -> Run column -> Report converge or not and results
-        :param specs: [active spec 1, active spec 2, active spec 3 (if have)]
-        :param feed_frac: Int -> 1 feed frac only, List -> 2 or more feed stages. 0.1 ==> 10% from the top
-        :return:
-        '''
         self.ColumnFlowsheet.Reset()
         for active_spec, active_spec_goal in zip(self.active_specs, active_spec_goals):
             active_spec.GoalValue = active_spec_goal
