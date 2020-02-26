@@ -85,7 +85,7 @@ class CSTR:
             maxstress = 13100 # in psi
 
         # Weld Efficiency
-        if 
+        if
 
 
 
