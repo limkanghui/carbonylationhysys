@@ -1,16 +1,15 @@
 import numpy as np
 
-from own_package.hysys.hysys_column import DistColumn
+from hysys.hysys_CSTR import CSTR
 from hysys.hysys_link import init_hysys
 import pso_ga
 
 
 def optimize_CSTR():
     Hycase = init_hysys()
-    distcolumn = DistColumn(Hycase=Hycase, column_name='T-103', sprd_name='T-103 Pressures', max_trays=10,
-                            number_of_feed=1, number_of_draws=2, max_iter=100)
-    b_active_spec_1 = [1, 20]
-    b_rebo_p = [101.300, 101.300*3]
+    cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    b_inlettemp = [50, 150]
+    b_catalystweight = [0.001, 0.05]
     b_nt = [3, 10]
     b_feedloc = [0,1]
     p_store = [b_active_spec_1, b_rebo_p, b_nt, b_feedloc]
