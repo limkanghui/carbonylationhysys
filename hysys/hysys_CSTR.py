@@ -26,6 +26,7 @@ class CSTR:
         self.duty = self.spreadsheetdata.Cell('B9').CellValue
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
         self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
+        self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
 
         #Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
@@ -46,8 +47,47 @@ class CSTR:
         else:
             cost_of_cooling = 0.02*abs(self.duty)*0.000277778 #cost of cooling per hour
 
-
-    def reactor_cost(self):
+    def reactor_cost(self,):
         # CSTR modelled as a pressure vessel
         # Costing based on Towler's Book
+        operatingtemp = self.reactortemp
+        operatingP = self.reactorP
+
+        # Design Pressure
+        pressureinpsig = operatingP*0.145038-14.7
+        if pressureinpsig >= 0 & pressureinpsig <= 10:
+            designP = 10
+        elif pressureinpsig > 10 & pressureinpsig <= 1000:
+            designP = math.exp(0.60608+0.91615*np.log(operatingP)+0.0015655*np.log(operatingP)**2)
+        else:
+            designP = operatingP*1.1
+
+        # Design Temperature from Turton
+        designTemp = operatingtemp + 25 # in degree celsius
+
+        # Maximum Allowable Stress
+
+        designTemp_in_F = designTemp * (9/5) + 32
+        if designTemp_in_F >= -20 & designTemp_in_F <= 650:
+            # Use carbon steel, SA-285, grade C
+            maxstress = 13750 # in psi
+        elif designTemp_in_F > 650 & designTemp_in_F <= 750:
+            # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
+            maxstress = 15000 # in psi
+        elif designTemp_in_F > 750 & designTemp_in_F <= 800:
+            # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
+            maxstress = 14750 # in psi
+        elif designTemp_in_F > 800 & designTemp_in_F <= 850:
+            # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
+            maxstress = 14200 # in psi
+        elif designTemp_in_F > 850 & designTemp_in_F <= 900:
+            # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
+            maxstress = 13100 # in psi
+
+        # Weld Efficiency
+        if 
+
+
+
+
 
