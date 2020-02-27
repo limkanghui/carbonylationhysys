@@ -10,9 +10,9 @@ def optimize_CSTR():
     cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
     b_inlettemp = [50, 150]
     b_catalystweight = [0.001, 0.05]
-    b_nt = [3, 10]
-    b_feedloc = [0,1]
-    p_store = [b_active_spec_1, b_rebo_p, b_nt, b_feedloc]
+    b_residencetime = [0.05, 2]
+    b_reactorP = [2000,4000]
+    p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
 
     params = {'c1': 1.5, 'c2': 1.5, 'wmin': 0.4, 'wmax': 0.9,
               'ga_iter_min': 5, 'ga_iter_max': 20, 'iter_gamma': 10,
@@ -25,24 +25,18 @@ def optimize_CSTR():
 
     smin = [abs(x - y) * 0.01 for x, y in zip(pmin, pmax)]
     smax = [abs(x - y) * 0.5 for x, y in zip(pmin, pmax)]
-    num_evals = 0
+
     def func(individual):
-        nonlocal num_evals
-        num_evals += 1
-        active_specs_1 = individual[0]
-        active_specs_2 = 1
-        del_p = 0.3  #kPa
-        distcolumn.solve_column(active_spec_goals=[active_specs_1, active_specs_2], del_p=del_p,
-                                rebo_p=individual[1], number_of_trays=individual[2], feed_frac=individual[3])
-        if num_evals % 10 == 0:
-            print('Total evals: {}. Current Eval Converged: {}'.format(num_evals, distcolumn.status))
-        return (distcolumn.column_results(),)
+        nonlocal self
+        inlettemp, catalystweight, residencetime, reactorP = individual
+        CSTR.solve_reactor(inlettemp=individual[0], catalystweight=individual[1],
+                                residencetime=individual[2], reactorP=individual[3])
+        return (CSTR.reactor_results(),)
 
     pso_ga(func=func, pmin=pmin, pmax=pmax,
            smin=smin, smax=smax,
-           int_idx=[2], params=params, ga=True)
-
+           int_idx=None, params=params, ga=True)
 
 if __name__=='__main__':
-    optimize_column()
+    optimize_CSTR()
 

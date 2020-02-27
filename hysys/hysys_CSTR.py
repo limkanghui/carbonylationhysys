@@ -39,15 +39,6 @@ class CSTR:
         self.residencetime = residencetime
         self.reactorP = reactorP
 
-    def reactor_results(self):
-        # Electricity cost for heating/cooling
-        if self.beforeinlettemp < self.inlettemp:
-            #Heating is required
-            cost_of_heating = 0.10*abs(self.duty)*0.000277778 #cost of heating per hour
-
-        else:
-            cost_of_cooling = 0.02*abs(self.duty)*0.000277778 #cost of cooling per hour
-
     def reactor_design(self,):
         # CSTR modelled as a pressure vessel
         # Costing based on Towler's Book
@@ -56,9 +47,9 @@ class CSTR:
 
         # Design Pressure in psig
         pressureinpsig = operatingP*0.145038-14.7
-        if pressureinpsig >= 0 & pressureinpsig <= 10:
+        if pressureinpsig >= 0 and pressureinpsig <= 10:
             designP = 10
-        elif pressureinpsig > 10 & pressureinpsig <= 1000:
+        elif pressureinpsig > 10 and pressureinpsig <= 1000:
             designP = math.exp(0.60608+0.91615*np.log(operatingP)+0.0015655*np.log(operatingP)**2)
         else:
             designP = operatingP*1.1
@@ -69,19 +60,19 @@ class CSTR:
         # Maximum Allowable Stress
 
         designTemp_in_F = designTemp * (9/5) + 32
-        if designTemp_in_F >= -20 & designTemp_in_F <= 650:
+        if designTemp_in_F >= -20 and designTemp_in_F <= 650:
             # Use carbon steel, SA-285, grade C
             maxstress = 13750 # in psi
-        elif designTemp_in_F > 650 & designTemp_in_F <= 750:
+        elif designTemp_in_F > 650 and designTemp_in_F <= 750:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 15000 # in psi
-        elif designTemp_in_F > 750 & designTemp_in_F <= 800:
+        elif designTemp_in_F > 750 and designTemp_in_F <= 800:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 14750 # in psi
-        elif designTemp_in_F > 800 & designTemp_in_F <= 850:
+        elif designTemp_in_F > 800 and designTemp_in_F <= 850:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 14200 # in psi
-        elif designTemp_in_F > 850 & designTemp_in_F <= 900:
+        elif designTemp_in_F > 850 and designTemp_in_F <= 900:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 13100 # in psi
 
@@ -124,11 +115,11 @@ class CSTR:
         tc = 1/8
         ts = tv + tc
 
-        if ts >= 3/16 & ts <= 1/2:
+        if ts >= 3/16 and ts <= 1/2:
             ts = math.ceil(ts/(1/6))
-        elif ts >= 5/8 & ts <= 2:
+        elif ts >= 5/8 and ts <= 2:
             ts = math.ceil(ts/(1/8))
-        elif ts >= 9/4 & ts <= 3:
+        elif ts >= 9/4 and ts <= 3:
             ts = math.ceil(ts/(1/4))
 
         # weight of vessel
@@ -136,7 +127,7 @@ class CSTR:
 
         weight = math.pi*(Di+ts)*(3*Di+0.8*Di)*ts*0.284
 
-        return ts, weight
+        return ts, weight, Di
 
     def reactor_cost(self):
         # Using Reactor-mixer values from Appendix A of turton's tb
@@ -146,7 +137,54 @@ class CSTR:
         k2 = 0.4479
         k3 = 0.0004
 
-        
+        S = self.reactorsize
+
+        cp0_2001 = 10**(k1+k2*math.log10(S)+k3*(math.log10(S))**2)
+        cp0_2018 = cp0_2001*603.1/397
+
+        # Pressure factor for process vessels
+        operatingP = self.reactorP
+        pressureinpsig = operatingP * 0.145038 - 14.7
+        pressureinbarg = pressureinpsig * 0.0689476
+        ts, weight, Di = self.reactor_design()
+
+        if pressureinbarg <= -0.5:
+            Fp = 1.25
+        elif pressureinpsig > -0.5 and ts <= 1/8:
+            Fp = 1
+        elif pressureinpsig > -0.5 and ts > 1/4:
+            Fp = (((pressureinbarg+1)*Di)/(2*(850-0.6*(pressureinbarg+1)))+0.00315)/0.0063
+
+        # Material Factor
+        Fm = 1 # Carbon steel, ID no. 18 from Table A.3
+
+        # Bare module factor for vertical process vessel
+        B1 = 2.25
+        B2 = 1.82
+
+        # Bare module cost of reactor
+        Cbm = cp0_2018*(B1+(B2*Fp*Fm))
+
+        return Cbm
+
+    def reactor_results(self):
+        # Electricity cost for heating/cooling
+        if self.beforeinlettemp < self.inlettemp:
+            # Heating is required
+            cost_of_heating = 0.10 * abs(self.duty) * 0.000277778  # cost of heating per hour
+            Cbm = self.reactor_cost()
+            objective = (cost_of_heating+Cbm)/self.MFproduction
+        else:
+            cost_of_cooling = 0.02 * abs(self.duty) * 0.000277778  # cost of cooling per hour
+            Cbm = self.reactor_cost()
+            objective = (cost_of_cooling + Cbm)/self.MFproduction
+        return objective
+
+
+
+
+
+
 
 
 
