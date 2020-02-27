@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import itertools, math
-import time
+import time, pickle
 import openpyxl
 from scipy.optimize import fsolve
 
@@ -33,11 +33,19 @@ class CSTR:
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
         self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue
 
-    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP):
+        # Used to store all results evaulated from .solve_column to pickle save at the end of an optimization run
+        self.data_store = []
+        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'vaporFrac', 'duty', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction']
+
+
+    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, pkl_dir):
         self.inlettemp = inlettemp
         self.catalystweight = catatlystweight
         self.residencetime = residencetime
         self.reactorP = reactorP
+
+        self.store_to_data_store()
+        self.save_data_store_pkl(write_dir=pkl_dir)
 
     def reactor_design(self,):
         # CSTR modelled as a pressure vessel
@@ -174,18 +182,42 @@ class CSTR:
             cost_of_heating = 0.10 * abs(self.duty) * 0.000277778  # cost of heating per hour
             Cbm = self.reactor_cost()
             objective = (cost_of_heating+Cbm)/self.MFproduction
+            data = self.store_to_data_store()
+            data.extend([objective])
+            self.data_store.append(data)
         else:
             cost_of_cooling = 0.02 * abs(self.duty) * 0.000277778  # cost of cooling per hour
             Cbm = self.reactor_cost()
             objective = (cost_of_cooling + Cbm)/self.MFproduction
+            data = self.store_to_data_store()
+            data.extend([objective])
+            self.data_store.append(data)
+
         return objective
 
+    def store_to_data_store(self):
+        inlettemp = self.inlettemp
+        catalystweight = self.catalystweight
+        residencetime = self.residencetime
+        reactorP = self.reactorP
 
+        # Constraints
+        vaporFrac = self.vaporFrac
 
+        # Other variables
+        duty = self.duty
+        reactorsize = self.reactorsize
+        reactortemp = self.reactortemp
 
+        # Objective
+        conversion = self.conversion
+        MFproduction = self.MFproduction
 
+        return [inlettemp, catalystweight, residencetime, reactorP, vaporFrac, duty, reactorsize, reactortemp, conversion, MFproduction ]
 
-
+    def save_data_store_pkl(self, write_dir):
+        with open('{}'.format(write_dir), 'wb') as handle:
+            pickle.dump([self.data_store_columns, self.data_store], handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 

@@ -1,8 +1,10 @@
 from own_package.hysys.hysys_CSTR import CSTR
 from own_package.hysys.hysys_link import init_hysys
 from own_package.pso_ga import pso_ga
+import openpyxl
+import pickle
 
-def optimize_CSTR():
+def optimize_CSTR(pkl_dir):
     Hycase = init_hysys()
     cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
     b_inlettemp = [50, 150]
@@ -24,15 +26,25 @@ def optimize_CSTR():
     smax = [abs(x - y) * 0.5 for x, y in zip(pmin, pmax)]
 
     def func(individual):
-        nonlocal CSTR
+        nonlocal cstr
         inlettemp, catalystweight, residencetime, reactorP = individual
-        CSTR.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1], residencetime=individual[2], reactorP=individual[3])
-        return (CSTR.reactor_results(),)
+        cstr.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1], residencetime=individual[2], reactorP=individual[3], pkl_dir=pkl_dir)
+        return (cstr.reactor_results(),)
 
     pso_ga(func=func, pmin=pmin, pmax=pmax,
            smin=smin, smax=smax,
            int_idx=None, params=params, ga=True)
 
+def read_col_data_store(write_dir):
+    with open('{}/data_store.pkl'.format(write_dir), 'rb') as handle:
+        data_store = pickle.load(handle)
 
-optimize_CSTR()
+    write_excel = create_excel_file('{}/cstr_results.xlsx'.format(write_dir))
+    wb = openpyxl.load_workbook(write_excel)
+    ws = wb[wb.sheetnames[-1]]
+    print_df_to_excel(df=pd.DataFrame(data=data_store[1], columns=data_store[0]), ws=ws)
+    wb.save(write_excel)
+
+#optimize_CSTR(pkl_dir='./results')
+read_col_data_store(pkl_dir='./results')
 
