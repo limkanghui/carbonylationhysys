@@ -19,7 +19,7 @@ def optimize_CSTR():
               'ga_iter_min': 5, 'ga_iter_max': 20, 'iter_gamma': 10,
               'ga_num_min': 10, 'ga_num_max': 20, 'num_beta': 15,
               'tourn_size': 3, 'cxpd': 0.5, 'mutpd': 0.05, 'indpd': 0.5, 'eta': 0.5,
-              'pso_iter': 20, 'swarm_size': 50}
+              'pso_iter': 5, 'swarm_size': 50}
 
     pmin = [x[0] for x in p_store]
     pmax = [x[1] for x in p_store]
@@ -47,6 +47,6 @@ def read_col_data_store():
     print_df_to_excel(df=pd.DataFrame(data=data_store[1], columns=data_store[0]), ws=ws)
     wb.save(write_excel)
 
-#optimize_CSTR()
-read_col_data_store()
+optimize_CSTR()
+#read_col_data_store()
 

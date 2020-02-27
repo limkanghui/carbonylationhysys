@@ -5,7 +5,10 @@ from deap import base
 from deap import benchmarks
 from deap import creator
 from deap import tools
-
+from own_package.others import create_excel_file, print_df_to_excel
+import openpyxl
+import pickle
+import pandas as pd
 from deap.algorithms import varAnd
 from deap.tools.selection import selRandom
 
@@ -236,6 +239,16 @@ def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga):
         print(logbook.stream)
 
     print(best.fitness.values)
+    print(halloffame)
+
+    # Printing to excel
+    write_excel = create_excel_file('./results/cstr_results.xlsx')
+    wb = openpyxl.load_workbook(write_excel)
+    ws = wb[wb.sheetnames[-1]]
+    columnsheader = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP']
+    print_df_to_excel(df=pd.DataFrame(data=halloffame, columns=columnsheader), ws=ws)
+    wb.save(write_excel)
+
     return pop, logbook, best
 
 
