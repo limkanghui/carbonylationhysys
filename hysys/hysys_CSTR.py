@@ -3,6 +3,7 @@ import pandas as pd
 import itertools, math
 import time
 import openpyxl
+from scipy.optimize import fsolve
 
 from others import create_excel_file, print_df_to_excel
 
@@ -47,13 +48,13 @@ class CSTR:
         else:
             cost_of_cooling = 0.02*abs(self.duty)*0.000277778 #cost of cooling per hour
 
-    def reactor_cost(self,):
+    def reactor_design(self,):
         # CSTR modelled as a pressure vessel
         # Costing based on Towler's Book
         operatingtemp = self.reactortemp
         operatingP = self.reactorP
 
-        # Design Pressure
+        # Design Pressure in psig
         pressureinpsig = operatingP*0.145038-14.7
         if pressureinpsig >= 0 & pressureinpsig <= 10:
             designP = 10
@@ -84,8 +85,73 @@ class CSTR:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 13100 # in psi
 
-        # Weld Efficiency
-        if
+
+
+
+        # Assume cylindrical height to diameter is 3:1
+
+        def internalDfunction(D):
+            return math.pi*(D/2)**2*(3*D) - self.reactorsize
+
+        Di = fsolve(internalDfunction, 0.01)
+
+        # Shell thickness tp calculation
+        shell_thickness0 = designP*Di*39.3701/(2*maxstress*0.85-1.2*designP)
+
+        if shell_thickness0 <= 1.25:
+            shell_thickness = shell_thickness0
+        else:
+            shell_thickness = designP*Di*39.3701/(2*maxstress*1-1.2*designP)
+
+        if Di*3.28084 <= 4:
+            shell_thickness = 1/4
+        elif Di*3.28084 <= 6:
+            shell_thickness = 5/16
+        elif Di*3.28084 <= 8:
+            shell_thickness = 3/8
+        elif Di*3.28084 <= 10:
+            shell_thickness = 7/16
+        elif Di*3.28084 <= 12:
+            shell_thickness = 1/2
+
+        # Consider wind and earthquake for vertical column
+
+        def twfunc(tw):
+            return tw - 0.22*(Di+2*shell_thickness+tw+1/4+18)*((Di)*3)**2/(maxstress*(Di+2*shell_thickness+tw+1/4)**2)
+
+        tw_solved = fsolve(twfunc, 0.2)
+        tv = (2*shell_thickness+tw_solved)/2
+        tc = 1/8
+        ts = tv + tc
+
+        if ts >= 3/16 & ts <= 1/2:
+            ts = math.ceil(ts/(1/6))
+        elif ts >= 5/8 & ts <= 2:
+            ts = math.ceil(ts/(1/8))
+        elif ts >= 9/4 & ts <= 3:
+            ts = math.ceil(ts/(1/4))
+
+        # weight of vessel
+        # where ρ is the density of carbon steel SA-285 grade C which is 0.284 lbm/in3
+
+        weight = math.pi*(Di+ts)*(3*Di+0.8*Di)*ts*0.284
+
+        return ts, weight
+
+    def reactor_cost(self):
+        # Using Reactor-mixer values from Appendix A of turton's tb
+        # Volume between 0.04 and 60 m3
+
+        k1 = 4.7116
+        k2 = 0.4479
+        k3 = 0.0004
+
+        
+
+
+
+
+
 
 
 
