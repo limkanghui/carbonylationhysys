@@ -1,9 +1,6 @@
-import numpy as np
-
-from hysys.hysys_CSTR import CSTR
-from hysys.hysys_link import init_hysys
-import pso_ga
-
+from own_package.hysys.hysys_CSTR import CSTR
+from own_package.hysys.hysys_link import init_hysys
+from own_package.pso_ga import pso_ga
 
 def optimize_CSTR():
     Hycase = init_hysys()
@@ -27,10 +24,8 @@ def optimize_CSTR():
     smax = [abs(x - y) * 0.5 for x, y in zip(pmin, pmax)]
 
     def func(individual):
-        nonlocal self
         inlettemp, catalystweight, residencetime, reactorP = individual
-        CSTR.solve_reactor(inlettemp=individual[0], catalystweight=individual[1],
-                                residencetime=individual[2], reactorP=individual[3])
+        CSTR.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1], residencetime=individual[2], reactorP=individual[3])
         return (CSTR.reactor_results(),)
 
     pso_ga(func=func, pmin=pmin, pmax=pmax,

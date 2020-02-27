@@ -31,7 +31,7 @@ class CSTR:
 
         #Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
-        self.MFproduction = self.spreadsheetdata.Cell(D6).CellValue
+        self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue
 
     def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP):
         self.inlettemp = inlettemp
