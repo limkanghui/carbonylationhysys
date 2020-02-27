@@ -35,17 +35,17 @@ class CSTR:
 
         # Used to store all results evaulated from .solve_column to pickle save at the end of an optimization run
         self.data_store = []
-        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'vaporFrac', 'duty', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction']
+        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'vaporFrac', 'duty', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction', 'objective']
 
 
-    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, pkl_dir):
+    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP):
         self.inlettemp = inlettemp
         self.catalystweight = catatlystweight
         self.residencetime = residencetime
         self.reactorP = reactorP
 
         self.store_to_data_store()
-        self.save_data_store_pkl(write_dir=pkl_dir)
+        self.save_data_store_pkl()
 
     def reactor_design(self,):
         # CSTR modelled as a pressure vessel
@@ -183,14 +183,14 @@ class CSTR:
             Cbm = self.reactor_cost()
             objective = (cost_of_heating+Cbm)/self.MFproduction
             data = self.store_to_data_store()
-            data.extend([objective])
+            data.extend(objective)
             self.data_store.append(data)
         else:
             cost_of_cooling = 0.02 * abs(self.duty) * 0.000277778  # cost of cooling per hour
             Cbm = self.reactor_cost()
             objective = (cost_of_cooling + Cbm)/self.MFproduction
             data = self.store_to_data_store()
-            data.extend([objective])
+            data.extend(objective)
             self.data_store.append(data)
 
         return objective
@@ -215,8 +215,8 @@ class CSTR:
 
         return [inlettemp, catalystweight, residencetime, reactorP, vaporFrac, duty, reactorsize, reactortemp, conversion, MFproduction ]
 
-    def save_data_store_pkl(self, write_dir):
-        with open('{}'.format(write_dir), 'wb') as handle:
+    def save_data_store_pkl(self):
+        with open('data_store.pkl', 'wb') as handle:
             pickle.dump([self.data_store_columns, self.data_store], handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
