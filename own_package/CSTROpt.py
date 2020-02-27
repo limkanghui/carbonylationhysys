@@ -24,6 +24,7 @@ def optimize_CSTR():
     smax = [abs(x - y) * 0.5 for x, y in zip(pmin, pmax)]
 
     def func(individual):
+        nonlocal CSTR
         inlettemp, catalystweight, residencetime, reactorP = individual
         CSTR.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1], residencetime=individual[2], reactorP=individual[3])
         return (CSTR.reactor_results(),)
@@ -32,6 +33,6 @@ def optimize_CSTR():
            smin=smin, smax=smax,
            int_idx=None, params=params, ga=True)
 
-if __name__=='__main__':
-    optimize_CSTR()
+
+optimize_CSTR()
 
