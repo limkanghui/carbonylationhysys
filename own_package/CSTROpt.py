@@ -12,14 +12,14 @@ def optimize_CSTR():
     b_inlettemp = [50, 150]
     b_catalystweight = [0.001, 0.05]
     b_residencetime = [0.05, 2]
-    b_reactorP = [2000,4000]
+    b_reactorP = [2000, 4000]
     p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
 
     params = {'c1': 1.5, 'c2': 1.5, 'wmin': 0.4, 'wmax': 0.9,
               'ga_iter_min': 5, 'ga_iter_max': 20, 'iter_gamma': 10,
               'ga_num_min': 10, 'ga_num_max': 20, 'num_beta': 15,
               'tourn_size': 3, 'cxpd': 0.5, 'mutpd': 0.05, 'indpd': 0.5, 'eta': 0.5,
-              'pso_iter': 100, 'swarm_size': 50}
+              'pso_iter': 20, 'swarm_size': 50}
 
     pmin = [x[0] for x in p_store]
     pmax = [x[1] for x in p_store]

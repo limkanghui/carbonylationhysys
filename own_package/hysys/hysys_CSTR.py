@@ -4,7 +4,6 @@ import itertools, math
 import time, pickle
 import openpyxl
 from scipy.optimize import fsolve
-
 from others import create_excel_file, print_df_to_excel
 
 
@@ -39,10 +38,29 @@ class CSTR:
 
 
     def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP):
+
+        self.spreadsheetdata.Cell('B2').CellValue = inlettemp
+        self.spreadsheetdata.Cell('B3').CellValue = catatlystweight
+        self.spreadsheetdata.Cell('B4').CellValue = residencetime
+        self.spreadsheetdata.Cell('B5').CellValue = reactorP
+
         self.inlettemp = inlettemp
         self.catalystweight = catatlystweight
         self.residencetime = residencetime
         self.reactorP = reactorP
+
+        # Constraints
+        self.vaporFrac = self.spreadsheetdata.Cell('D2').CellValue
+
+        # Other variables
+        self.duty = self.spreadsheetdata.Cell('B9').CellValue
+        self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
+        self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
+        self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
+
+        # Objective
+        self.conversion = self.spreadsheetdata.Cell('D5').CellValue
+        self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue
 
         self.store_to_data_store()
         self.save_data_store_pkl()
