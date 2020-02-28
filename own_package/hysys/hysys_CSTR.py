@@ -22,27 +22,27 @@ class CSTR:
         #Constraints
 
         #Other variables
-        self.E101duty = self.spreadsheetdata.Cell('B9').CellValue
+        self.E101duty = self.spreadsheetdata.Cell('B9').CellValue *3600
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
         self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
-        self.E100duty = self.spreadsheetdata.Cell('D9').CellValue
-        self.E102duty = self.spreadsheetdata.Cell('D10').CellValue
-        self.E104duty = self.spreadsheetdata.Cell('D11').CellValue
-        self.E106duty = self.spreadsheetdata.Cell('D12').CellValue
-        self.E111duty = self.spreadsheetdata.Cell('D13').CellValue
-        self.P8duty = self.spreadsheetdata.Cell('B13').CellValue
-        self.P106duty = self.spreadsheetdata.Cell('B14').CellValue
-        self.C101duty = self.spreadsheetdata.Cell('D14').CellValue
-        self.C103duty = self.spreadsheetdata.Cell('D15').CellValue
-        self.C104duty = self.spreadsheetdata.Cell('D16').CellValue
-        self.C100duty = self.spreadsheetdata.Cell('B15').CellValue
-        self.C102duty = self.spreadsheetdata.Cell('B16').CellValue
+        self.E100duty = self.spreadsheetdata.Cell('D9').CellValue *3600
+        self.E102duty = self.spreadsheetdata.Cell('D10').CellValue *3600
+        self.E104duty = self.spreadsheetdata.Cell('D11').CellValue *3600
+        self.E106duty = self.spreadsheetdata.Cell('D12').CellValue *3600
+        self.E111duty = self.spreadsheetdata.Cell('D13').CellValue *3600
+        self.P8duty = self.spreadsheetdata.Cell('B13').CellValue *3600
+        self.P106duty = self.spreadsheetdata.Cell('B14').CellValue *3600
+        self.C101duty = self.spreadsheetdata.Cell('D14').CellValue *3600
+        self.C103duty = self.spreadsheetdata.Cell('D15').CellValue *3600
+        self.C104duty = self.spreadsheetdata.Cell('D16').CellValue *3600
+        self.C100duty = self.spreadsheetdata.Cell('B15').CellValue *3600
+        self.C102duty = self.spreadsheetdata.Cell('B16').CellValue *3600
         self.beforeinlet8_1_temp = self.spreadsheetdata.Cell('B17').CellValue
 
         #Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
-        self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue
+        self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue *3600
 
         # Used to store all results evaulated from .solve_column to pickle save at the end of an optimization run
         self.data_store = []
@@ -64,27 +64,27 @@ class CSTR:
         # Constraints
 
         # Other variables
-        self.E101duty = self.spreadsheetdata.Cell('B9').CellValue
+        self.E101duty = self.spreadsheetdata.Cell('B9').CellValue *3600
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
         self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
-        self.E100duty = self.spreadsheetdata.Cell('D9').CellValue
-        self.E102duty = self.spreadsheetdata.Cell('D10').CellValue
-        self.E104duty = self.spreadsheetdata.Cell('D11').CellValue
-        self.E106duty = self.spreadsheetdata.Cell('D12').CellValue
-        self.E111duty = self.spreadsheetdata.Cell('D13').CellValue
-        self.P8duty = self.spreadsheetdata.Cell('B13').CellValue
-        self.P106duty = self.spreadsheetdata.Cell('B14').CellValue
-        self.C101duty = self.spreadsheetdata.Cell('D14').CellValue
-        self.C103duty = self.spreadsheetdata.Cell('D15').CellValue
-        self.C104duty = self.spreadsheetdata.Cell('D16').CellValue
-        self.C100duty = self.spreadsheetdata.Cell('B15').CellValue
-        self.C102duty = self.spreadsheetdata.Cell('B16').CellValue
+        self.E100duty = self.spreadsheetdata.Cell('D9').CellValue *3600
+        self.E102duty = self.spreadsheetdata.Cell('D10').CellValue *3600
+        self.E104duty = self.spreadsheetdata.Cell('D11').CellValue *3600
+        self.E106duty = self.spreadsheetdata.Cell('D12').CellValue *3600
+        self.E111duty = self.spreadsheetdata.Cell('D13').CellValue *3600
+        self.P8duty = self.spreadsheetdata.Cell('B13').CellValue *3600
+        self.P106duty = self.spreadsheetdata.Cell('B14').CellValue *3600
+        self.C101duty = self.spreadsheetdata.Cell('D14').CellValue *3600
+        self.C103duty = self.spreadsheetdata.Cell('D15').CellValue *3600
+        self.C104duty = self.spreadsheetdata.Cell('D16').CellValue *3600
+        self.C100duty = self.spreadsheetdata.Cell('B15').CellValue *3600
+        self.C102duty = self.spreadsheetdata.Cell('B16').CellValue *3600
         self.beforeinlet8_1_temp = self.spreadsheetdata.Cell('B17').CellValue
 
         # Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
-        self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue
+        self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue *3600
 
         if storedata == True:
             self.store_to_data_store()
@@ -229,9 +229,9 @@ class CSTR:
             objective = (cost_of_heating+cost_of_cooling+cost_of_comp_and_pump_duties+Cbm)/self.MFproduction
             if storedata == True:
                 data = self.store_to_data_store()
-                data.extend(cost_of_heating)
-                data.extend(cost_of_cooling)
-                data.extend(cost_of_comp_and_pump_duties)
+                data.extend([cost_of_heating])
+                data.extend([cost_of_cooling])
+                data.extend([cost_of_comp_and_pump_duties])
                 data.extend(Cbm)
                 data.extend(objective)
                 self.data_store.append(data)
@@ -250,9 +250,9 @@ class CSTR:
             objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
             if storedata == True:
                 data = self.store_to_data_store()
-                data.extend(cost_of_heating)
-                data.extend(cost_of_cooling)
-                data.extend(cost_of_comp_and_pump_duties)
+                data.extend([cost_of_heating])
+                data.extend([cost_of_cooling])
+                data.extend([cost_of_comp_and_pump_duties])
                 data.extend(Cbm)
                 data.extend(objective)
                 self.data_store.append(data)
@@ -271,13 +271,13 @@ class CSTR:
             objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
             if storedata == True:
                 data = self.store_to_data_store()
-                data.extend(cost_of_heating)
-                data.extend(cost_of_cooling)
-                data.extend(cost_of_comp_and_pump_duties)
+                data.extend([cost_of_heating])
+                data.extend([cost_of_cooling])
+                data.extend([cost_of_comp_and_pump_duties])
                 data.extend(Cbm)
                 data.extend(objective)
                 self.data_store.append(data)
-                
+
         else:
             # No heating is required at all
             cost_of_heating = 0
@@ -292,9 +292,9 @@ class CSTR:
             objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
             if storedata == True:
                 data = self.store_to_data_store()
-                data.extend(cost_of_heating)
-                data.extend(cost_of_cooling)
-                data.extend(cost_of_comp_and_pump_duties)
+                data.extend([cost_of_heating])
+                data.extend([cost_of_cooling])
+                data.extend([cost_of_comp_and_pump_duties])
                 data.extend(Cbm)
                 data.extend(objective)
                 self.data_store.append(data)

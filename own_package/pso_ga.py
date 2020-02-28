@@ -5,7 +5,7 @@ from deap import base
 from deap import benchmarks
 from deap import creator
 from deap import tools
-from own_package.others import create_excel_file, print_df_to_excel
+from own_package.others import create_excel_file, print_df_to_excel, print_array_to_excel
 import openpyxl
 import pickle
 import pandas as pd
@@ -239,14 +239,34 @@ def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga):
         print(logbook.stream)
 
     print(best.fitness.values)
-    print(halloffame)
 
     # Printing to excel
-    write_excel = create_excel_file('./results/cstr_results.xlsx')
+    write_excel = create_excel_file('./results/pso_ga_results.xlsx')
     wb = openpyxl.load_workbook(write_excel)
     ws = wb[wb.sheetnames[-1]]
-    columnsheader = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP']
-    print_df_to_excel(df=pd.DataFrame(data=halloffame, columns=columnsheader), ws=ws)
+
+    ws.cell(1, 1).value = 'Optimal Decision Values'
+    print_array_to_excel(['inlettemp', 'catalystweight', 'residencetime', 'reactorP'],(2,1), ws=ws, axis=1)
+    print_array_to_excel(best, (3,1), ws=ws, axis=1)
+
+    genfit = logbook.select("gen")
+    avgfit = logbook.select("avg")
+    stdfit = logbook.select("std")
+    minfit = logbook.select("min")
+    maxfit = logbook.select("max")
+
+    ws.cell(5, 1).value = 'gen'
+    ws.cell(6, 1).value = 'avg'
+    ws.cell(7, 1).value = 'std'
+    ws.cell(8, 1).value = 'min'
+    ws.cell(9, 1).value = 'max'
+
+    print_array_to_excel(genfit, (5,2), ws=ws, axis=1)
+    print_array_to_excel(avgfit, (6, 2), ws=ws, axis=1)
+    print_array_to_excel(stdfit, (7, 2), ws=ws, axis=1)
+    print_array_to_excel(minfit, (8, 2), ws=ws, axis=1)
+    print_array_to_excel(maxfit, (9, 2), ws=ws, axis=1)
+
     wb.save(write_excel)
 
     return pop, logbook, best

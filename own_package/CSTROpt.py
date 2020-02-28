@@ -30,12 +30,14 @@ def optimize_CSTR(storedata):
     def func(individual):
         nonlocal cstr
         inlettemp, catalystweight, residencetime, reactorP = individual
-        cstr.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1], residencetime=individual[2], reactorP=individual[3], storedata=storedata)
+        cstr.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1],
+                           residencetime=individual[2], reactorP=individual[3], storedata=storedata)
         return (cstr.reactor_results(storedata),)
 
-    pso_ga(func=func, pmin=pmin, pmax=pmax,
-           smin=smin, smax=smax,
-           int_idx=None, params=params, ga=True)
+    pop, logbook, best = pso_ga(func=func, pmin=pmin, pmax=pmax,
+                                smin=smin, smax=smax,
+                                int_idx=None, params=params, ga=True)
+    return best
 
 def read_col_data_store():
     with open('./data_store.pkl', 'rb') as handle:
@@ -47,6 +49,14 @@ def read_col_data_store():
     print_df_to_excel(df=pd.DataFrame(data=data_store[1], columns=data_store[0]), ws=ws)
     wb.save(write_excel)
 
-optimize_CSTR(storedata=False)
-#read_col_data_store()
+def get_data_from_hysys(best):
+    Hycase = init_hysys()
+    cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    cstr.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3], storedata=True)
+    cstr.reactor_results(storedata=True)
+    read_col_data_store()
+
+#best = optimize_CSTR(storedata=False)
+best = [90.31975449252243, 0.03521142273858245, 0.29880474581513217, 2000]
+get_data_from_hysys(best=best)
 
