@@ -20,13 +20,24 @@ class CSTR:
         self.reactorP = self.spreadsheetdata.Cell('B5').CellValue
 
         #Constraints
-        self.vaporFrac = self.spreadsheetdata.Cell('D2').CellValue
 
         #Other variables
-        self.duty = self.spreadsheetdata.Cell('B9').CellValue
+        self.E101duty = self.spreadsheetdata.Cell('B9').CellValue
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
         self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
+        self.E100duty = self.spreadsheetdata.Cell('D9').CellValue
+        self.E102duty = self.spreadsheetdata.Cell('D10').CellValue
+        self.E104duty = self.spreadsheetdata.Cell('D11').CellValue
+        self.E106duty = self.spreadsheetdata.Cell('D12').CellValue
+        self.E111duty = self.spreadsheetdata.Cell('D13').CellValue
+        self.P8duty = self.spreadsheetdata.Cell('C13').CellValue
+        self.P106duty = self.spreadsheetdata.Cell('C14').CellValue
+        self.C101duty = self.spreadsheetdata.Cell('D14').CellValue
+        self.C103duty = self.spreadsheetdata.Cell('D15').CellValue
+        self.C104duty = self.spreadsheetdata.Cell('D16').CellValue
+        self.C100duty = self.spreadsheetdata.Cell('C15').CellValue
+        self.C102duty = self.spreadsheetdata.Cell('C16').CellValue
 
         #Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
@@ -34,10 +45,10 @@ class CSTR:
 
         # Used to store all results evaulated from .solve_column to pickle save at the end of an optimization run
         self.data_store = []
-        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'vaporFrac', 'duty', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction', 'objective']
+        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction','cost of heating','cost of cooling','cost of comp and pump','reactor cost','objective']
 
 
-    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP):
+    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, storedata):
 
         self.spreadsheetdata.Cell('B2').CellValue = inlettemp
         self.spreadsheetdata.Cell('B3').CellValue = catatlystweight
@@ -50,20 +61,32 @@ class CSTR:
         self.reactorP = reactorP
 
         # Constraints
-        self.vaporFrac = self.spreadsheetdata.Cell('D2').CellValue
 
         # Other variables
-        self.duty = self.spreadsheetdata.Cell('B9').CellValue
+        self.E101duty = self.spreadsheetdata.Cell('B9').CellValue
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
         self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
+        self.E100duty = self.spreadsheetdata.Cell('D9').CellValue
+        self.E102duty = self.spreadsheetdata.Cell('D10').CellValue
+        self.E104duty = self.spreadsheetdata.Cell('D11').CellValue
+        self.E106duty = self.spreadsheetdata.Cell('D12').CellValue
+        self.E111duty = self.spreadsheetdata.Cell('D13').CellValue
+        self.P8duty = self.spreadsheetdata.Cell('C13').CellValue
+        self.P106duty = self.spreadsheetdata.Cell('C14').CellValue
+        self.C101duty = self.spreadsheetdata.Cell('D14').CellValue
+        self.C103duty = self.spreadsheetdata.Cell('D15').CellValue
+        self.C104duty = self.spreadsheetdata.Cell('D16').CellValue
+        self.C100duty = self.spreadsheetdata.Cell('C15').CellValue
+        self.C102duty = self.spreadsheetdata.Cell('C16').CellValue
 
         # Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
         self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue
 
-        self.store_to_data_store()
-        self.save_data_store_pkl()
+        if storedata = True:
+            self.store_to_data_store()
+            self.save_data_store_pkl()
 
     def reactor_design(self,):
         # CSTR modelled as a pressure vessel
@@ -102,11 +125,7 @@ class CSTR:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 13100 # in psi
 
-
-
-
         # Assume cylindrical height to diameter is 3:1
-
         def internalDfunction(D):
             return math.pi*(D/2)**2*(3*D) - self.reactorsize
 
@@ -132,7 +151,6 @@ class CSTR:
             shell_thickness = 1/2
 
         # Consider wind and earthquake for vertical column
-
         def twfunc(tw):
             return tw - 0.22*(Di+2*shell_thickness+tw+1/4+18)*((Di)*3)**2/(maxstress*(Di+2*shell_thickness+tw+1/4)**2)
 
@@ -193,37 +211,64 @@ class CSTR:
 
         return Cbm
 
-    def reactor_results(self):
+    def reactor_results(self, datastore):
         # Electricity cost for heating/cooling
         if self.beforeinlettemp < self.inlettemp:
             # Heating is required
             cost_of_heating = 0.10 * abs(self.duty) * 0.000277778  # cost of heating per hour
+            # Combined cooling costs
+            cooling_duties = self.E100duty+self.E101duty+self.E102duty+self.E104duty+self.E106duty+self.E111duty
+            cost_of_cooling = 0.02 * cooling_duties * 0.000277778
+            # Combined Compressor and Pump Electricity Costs
+            compressor_duties = self.C100duty+self.C101duty+self.C102duty+self.C103duty+self.C104duty
+            pump_duties = self.P8duty+self.P106duty
+            cost_of_comp_and_pump_duties = 0.2 * (compressor_duties+pump_duties) * 0.000277778
             Cbm = self.reactor_cost()
-            objective = (cost_of_heating+Cbm)/self.MFproduction
-            data = self.store_to_data_store()
-            data.extend(objective)
-            self.data_store.append(data)
+            objective = (cost_of_heating+cost_of_cooling+cost_of_comp_and_pump_duties+Cbm)/self.MFproduction
+
+            if datastore = True:
+                data = self.store_to_data_store()
+                data.extend(cost_of_heating)
+                data.extend(cost_of_cooling)
+                data.extend(cost_of_comp_and_pump_duties)
+                data.extend(Cbm)
+                data.extend(objective)
+                self.data_store.append(data)
         else:
+            # No heating is required at all
+            cost_of_heating = 0
+            # Cooling is required instead
             cost_of_cooling = 0.02 * abs(self.duty) * 0.000277778  # cost of cooling per hour
+            # Combine all cooling costs
+            cooling_duties = self.E100duty + self.E101duty + self.E102duty + self.E104duty + self.E106duty + self.E111duty
+            cost_of_cooling = 0.02 * cooling_duties * 0.000277778
+            # Combined Compressor and Pump Electricity Costs
+            compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
+            pump_duties = self.P8duty + self.P106duty
+            cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
             Cbm = self.reactor_cost()
-            objective = (cost_of_cooling + Cbm)/self.MFproduction
-            data = self.store_to_data_store()
-            data.extend(objective)
-            self.data_store.append(data)
+            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
+            if datastore = True:
+                data = self.store_to_data_store()
+                data.extend(cost_of_heating)
+                data.extend(cost_of_cooling)
+                data.extend(cost_of_comp_and_pump_duties)
+                data.extend(Cbm)
+                data.extend(objective)
+                self.data_store.append(data)
 
         return objective
 
     def store_to_data_store(self):
+        # Decision Variables
         inlettemp = self.inlettemp
         catalystweight = self.catalystweight
         residencetime = self.residencetime
         reactorP = self.reactorP
 
         # Constraints
-        vaporFrac = self.vaporFrac
 
         # Other variables
-        duty = self.duty
         reactorsize = self.reactorsize
         reactortemp = self.reactortemp
 
@@ -231,7 +276,7 @@ class CSTR:
         conversion = self.conversion
         MFproduction = self.MFproduction
 
-        return [inlettemp, catalystweight, residencetime, reactorP, vaporFrac, duty, reactorsize, reactortemp, conversion, MFproduction ]
+        return [inlettemp, catalystweight, residencetime, reactorP, reactorsize, reactortemp, conversion, MFproduction]
 
     def save_data_store_pkl(self):
         with open('data_store.pkl', 'wb') as handle:
