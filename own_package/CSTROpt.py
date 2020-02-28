@@ -6,7 +6,7 @@ import openpyxl
 import pickle
 import pandas as pd
 
-def optimize_CSTR():
+def optimize_CSTR(storedata):
     Hycase = init_hysys()
     cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
     b_inlettemp = [50, 150]
@@ -30,8 +30,8 @@ def optimize_CSTR():
     def func(individual):
         nonlocal cstr
         inlettemp, catalystweight, residencetime, reactorP = individual
-        cstr.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1], residencetime=individual[2], reactorP=individual[3])
-        return (cstr.reactor_results(),)
+        cstr.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1], residencetime=individual[2], reactorP=individual[3], storedata=storedata)
+        return (cstr.reactor_results(storedata),)
 
     pso_ga(func=func, pmin=pmin, pmax=pmax,
            smin=smin, smax=smax,
@@ -47,6 +47,6 @@ def read_col_data_store():
     print_df_to_excel(df=pd.DataFrame(data=data_store[1], columns=data_store[0]), ws=ws)
     wb.save(write_excel)
 
-optimize_CSTR()
+optimize_CSTR(storedata=False)
 #read_col_data_store()
 

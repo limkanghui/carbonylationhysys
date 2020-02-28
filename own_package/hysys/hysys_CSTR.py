@@ -31,13 +31,14 @@ class CSTR:
         self.E104duty = self.spreadsheetdata.Cell('D11').CellValue
         self.E106duty = self.spreadsheetdata.Cell('D12').CellValue
         self.E111duty = self.spreadsheetdata.Cell('D13').CellValue
-        self.P8duty = self.spreadsheetdata.Cell('C13').CellValue
-        self.P106duty = self.spreadsheetdata.Cell('C14').CellValue
+        self.P8duty = self.spreadsheetdata.Cell('B13').CellValue
+        self.P106duty = self.spreadsheetdata.Cell('B14').CellValue
         self.C101duty = self.spreadsheetdata.Cell('D14').CellValue
         self.C103duty = self.spreadsheetdata.Cell('D15').CellValue
         self.C104duty = self.spreadsheetdata.Cell('D16').CellValue
-        self.C100duty = self.spreadsheetdata.Cell('C15').CellValue
-        self.C102duty = self.spreadsheetdata.Cell('C16').CellValue
+        self.C100duty = self.spreadsheetdata.Cell('B15').CellValue
+        self.C102duty = self.spreadsheetdata.Cell('B16').CellValue
+        self.beforeinlet8_1_temp = self.spreadsheetdata.Cell('B17').CellValue
 
         #Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
@@ -72,19 +73,20 @@ class CSTR:
         self.E104duty = self.spreadsheetdata.Cell('D11').CellValue
         self.E106duty = self.spreadsheetdata.Cell('D12').CellValue
         self.E111duty = self.spreadsheetdata.Cell('D13').CellValue
-        self.P8duty = self.spreadsheetdata.Cell('C13').CellValue
-        self.P106duty = self.spreadsheetdata.Cell('C14').CellValue
+        self.P8duty = self.spreadsheetdata.Cell('B13').CellValue
+        self.P106duty = self.spreadsheetdata.Cell('B14').CellValue
         self.C101duty = self.spreadsheetdata.Cell('D14').CellValue
         self.C103duty = self.spreadsheetdata.Cell('D15').CellValue
         self.C104duty = self.spreadsheetdata.Cell('D16').CellValue
-        self.C100duty = self.spreadsheetdata.Cell('C15').CellValue
-        self.C102duty = self.spreadsheetdata.Cell('C16').CellValue
+        self.C100duty = self.spreadsheetdata.Cell('B15').CellValue
+        self.C102duty = self.spreadsheetdata.Cell('B16').CellValue
+        self.beforeinlet8_1_temp = self.spreadsheetdata.Cell('B17').CellValue
 
         # Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
         self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue
 
-        if storedata = True:
+        if storedata == True:
             self.store_to_data_store()
             self.save_data_store_pkl()
 
@@ -211,13 +213,13 @@ class CSTR:
 
         return Cbm
 
-    def reactor_results(self, datastore):
+    def reactor_results(self, storedata):
         # Electricity cost for heating/cooling
-        if self.beforeinlettemp < self.inlettemp:
+        if self.beforeinlettemp < self.inlettemp and self.beforeinlet8_1_temp < self.inlettemp:
             # Heating is required
-            cost_of_heating = 0.10 * abs(self.duty) * 0.000277778  # cost of heating per hour
+            cost_of_heating = 0.10 * abs(self.E101duty+self.E102duty) * 0.000277778  # cost of heating per hour
             # Combined cooling costs
-            cooling_duties = self.E100duty+self.E101duty+self.E102duty+self.E104duty+self.E106duty+self.E111duty
+            cooling_duties = self.E100duty+self.E104duty+self.E106duty+self.E111duty
             cost_of_cooling = 0.02 * cooling_duties * 0.000277778
             # Combined Compressor and Pump Electricity Costs
             compressor_duties = self.C100duty+self.C101duty+self.C102duty+self.C103duty+self.C104duty
@@ -225,8 +227,7 @@ class CSTR:
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties+pump_duties) * 0.000277778
             Cbm = self.reactor_cost()
             objective = (cost_of_heating+cost_of_cooling+cost_of_comp_and_pump_duties+Cbm)/self.MFproduction
-
-            if datastore = True:
+            if storedata == True:
                 data = self.store_to_data_store()
                 data.extend(cost_of_heating)
                 data.extend(cost_of_cooling)
@@ -234,11 +235,52 @@ class CSTR:
                 data.extend(Cbm)
                 data.extend(objective)
                 self.data_store.append(data)
+
+        elif self.beforeinlettemp < self.inlettemp and self.beforeinlet8_1_temp > self.inlettemp:
+            # Heating is required
+            cost_of_heating = 0.10 * abs(self.E101duty) * 0.000277778  # cost of heating per hour
+            # Combined cooling costs
+            cooling_duties = self.E100duty + self.E102duty + self.E104duty + self.E106duty + self.E111duty
+            cost_of_cooling = 0.02 * cooling_duties * 0.000277778
+            # Combined Compressor and Pump Electricity Costs
+            compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
+            pump_duties = self.P8duty + self.P106duty
+            cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
+            Cbm = self.reactor_cost()
+            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
+            if storedata == True:
+                data = self.store_to_data_store()
+                data.extend(cost_of_heating)
+                data.extend(cost_of_cooling)
+                data.extend(cost_of_comp_and_pump_duties)
+                data.extend(Cbm)
+                data.extend(objective)
+                self.data_store.append(data)
+
+        elif self.beforeinlettemp > self.inlettemp and self.beforeinlet8_1_temp < self.inlettemp:
+            # Heating is required
+            cost_of_heating = 0.10 * abs(self.E102duty) * 0.000277778  # cost of heating per hour
+            # Combined cooling costs
+            cooling_duties = self.E100duty + self.E101duty + self.E104duty + self.E106duty + self.E111duty
+            cost_of_cooling = 0.02 * cooling_duties * 0.000277778
+            # Combined Compressor and Pump Electricity Costs
+            compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
+            pump_duties = self.P8duty + self.P106duty
+            cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
+            Cbm = self.reactor_cost()
+            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
+            if storedata == True:
+                data = self.store_to_data_store()
+                data.extend(cost_of_heating)
+                data.extend(cost_of_cooling)
+                data.extend(cost_of_comp_and_pump_duties)
+                data.extend(Cbm)
+                data.extend(objective)
+                self.data_store.append(data)
+                
         else:
             # No heating is required at all
             cost_of_heating = 0
-            # Cooling is required instead
-            cost_of_cooling = 0.02 * abs(self.duty) * 0.000277778  # cost of cooling per hour
             # Combine all cooling costs
             cooling_duties = self.E100duty + self.E101duty + self.E102duty + self.E104duty + self.E106duty + self.E111duty
             cost_of_cooling = 0.02 * cooling_duties * 0.000277778
@@ -248,7 +290,7 @@ class CSTR:
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
             Cbm = self.reactor_cost()
             objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
-            if datastore = True:
+            if storedata == True:
                 data = self.store_to_data_store()
                 data.extend(cost_of_heating)
                 data.extend(cost_of_cooling)
