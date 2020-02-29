@@ -238,13 +238,15 @@ class CSTR:
             pump_duties = self.P8duty+self.P106duty
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties+pump_duties) * 0.000277778
             Cbm = self.reactor_cost()
-            objective = (cost_of_heating+cost_of_cooling+cost_of_comp_and_pump_duties+Cbm)/self.MFproduction
+            # Assume the plant runs for 10 years, 8000 hours per year
+            hourly_reactor_cost = Cbm/(80000)
+            objective = (cost_of_heating+cost_of_cooling+cost_of_comp_and_pump_duties+hourly_reactor_cost)/self.MFproduction
             if storedata == True:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
-                data.extend(Cbm)
+                data.extend(hourly_reactor_cost)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -261,13 +263,15 @@ class CSTR:
             pump_duties = self.P8duty + self.P106duty
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
             Cbm = self.reactor_cost()
-            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
+            # Assume the plant runs for 10 years, 8000 hours per year
+            hourly_reactor_cost = Cbm / (80000)
+            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + hourly_reactor_cost) / self.MFproduction
             if storedata == True:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
-                data.extend(Cbm)
+                data.extend(hourly_reactor_cost)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -283,13 +287,15 @@ class CSTR:
             pump_duties = self.P8duty + self.P106duty
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
             Cbm = self.reactor_cost()
-            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
+            # Assume the plant runs for 10 years, 8000 hours per year
+            hourly_reactor_cost = Cbm / (80000)
+            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + hourly_reactor_cost) / self.MFproduction
             if storedata == True:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
-                data.extend(Cbm)
+                data.extend(hourly_reactor_cost)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -305,13 +311,15 @@ class CSTR:
             pump_duties = self.P8duty + self.P106duty
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
             Cbm = self.reactor_cost()
-            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + Cbm) / self.MFproduction
+            # Assume the plant runs for 10 years, 8000 hours per year
+            hourly_reactor_cost = Cbm / (80000)
+            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + hourly_reactor_cost) / self.MFproduction
             if storedata == True:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
-                data.extend(Cbm)
+                data.extend(hourly_reactor_cost)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
