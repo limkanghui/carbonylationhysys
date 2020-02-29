@@ -50,15 +50,15 @@ def read_col_data_store():
     print_df_to_excel(df=pd.DataFrame(data=data_store[1], columns=data_store[0]), ws=ws)
     wb.save(write_excel)
 
-def get_data_from_hysys(best):
+def get_data_from_hysys(best,sleep):
     Hycase = init_hysys()
     cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
-    cstr.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3], storedata=True)
+    cstr.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3], sleep=sleep)
     cstr.reactor_results(storedata=True)
     read_col_data_store()
 
-best = optimize_CSTR(storedata=True,sleep=0, pso_gen=1)
+best = optimize_CSTR(storedata=True,sleep=0.3, pso_gen=2)
 read_col_data_store()
 #best = [84.576098,0.016262455,0.095356276,3330.973263]
-#get_data_from_hysys(best=best)
+#get_data_from_hysys(best=best,sleep=0)
 

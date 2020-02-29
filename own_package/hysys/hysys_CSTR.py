@@ -38,7 +38,11 @@ class CSTR:
         self.C104duty = self.spreadsheetdata.Cell('D16').CellValue *3600
         self.C100duty = self.spreadsheetdata.Cell('B15').CellValue *3600
         self.C102duty = self.spreadsheetdata.Cell('B16').CellValue *3600
-        self.beforeinlet8_1_temp = self.spreadsheetdata.Cell('B17').CellValue
+        self.beforeinlet8_1_temp = self.spreadsheetdata.Cell('B19').CellValue
+        self.catalystmassflow = self.spreadsheetdata.Cell('D19').CellValue *3600
+        self.comassflow = self.spreadsheetdata.Cell('D17').CellValue * 3600
+        self.MFin1 = self.spreadsheetdata.Cell('B17').CellValue *3600
+        self.MFin2 = self.spreadsheetdata.Cell('B18').CellValue * 3600
 
         #Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
@@ -46,7 +50,7 @@ class CSTR:
 
         # Used to store all results evaulated from .solve_column to pickle save at the end of an optimization run
         self.data_store = []
-        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction','cost of heating','cost of cooling','cost of comp and pump','reactor cost','objective']
+        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction','cost of heating','cost of cooling','cost of comp and pump','FCI','COMd','objective']
 
 
     def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, sleep):
@@ -55,7 +59,6 @@ class CSTR:
         self.spreadsheetdata.Cell('B3').CellValue = catatlystweight
         self.spreadsheetdata.Cell('B4').CellValue = residencetime
         self.spreadsheetdata.Cell('B5').CellValue = reactorP
-
 
         self.inlettemp = inlettemp
         self.catalystweight = catatlystweight
@@ -83,7 +86,11 @@ class CSTR:
         self.C104duty = self.spreadsheetdata.Cell('D16').CellValue * 3600
         self.C100duty = self.spreadsheetdata.Cell('B15').CellValue * 3600
         self.C102duty = self.spreadsheetdata.Cell('B16').CellValue * 3600
-        self.beforeinlet8_1_temp = self.spreadsheetdata.Cell('B17').CellValue
+        self.beforeinlet8_1_temp = self.spreadsheetdata.Cell('B19').CellValue
+        self.catalystmassflow = self.spreadsheetdata.Cell('D19').CellValue * 3600
+        self.comassflow = self.spreadsheetdata.Cell('D17').CellValue *3600
+        self.MFin1 = self.spreadsheetdata.Cell('B17').CellValue * 3600
+        self.MFin2 = self.spreadsheetdata.Cell('B18').CellValue * 3600
 
         # Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
@@ -93,7 +100,7 @@ class CSTR:
 
     def reactor_design(self,):
         # CSTR modelled as a pressure vessel
-        # Costing based on Towler's Book
+        # Reactor design based on Towler's Book
 
         operatingtemp = self.reactortemp
         operatingP = self.reactorP
@@ -237,20 +244,42 @@ class CSTR:
             compressor_duties = self.C100duty+self.C101duty+self.C102duty+self.C103duty+self.C104duty
             pump_duties = self.P8duty+self.P106duty
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties+pump_duties) * 0.000277778
+            # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
+            # Ignore waste treatment cost C_WT
+            # FCI
             Cbm = self.reactor_cost()
-            # Assume the plant runs for 10 years, 8000 hours per year
-            hourly_reactor_cost = Cbm/(80000)
-            objective = (cost_of_heating+cost_of_cooling+cost_of_comp_and_pump_duties+hourly_reactor_cost)/self.MFproduction
+            FCI = Cbm
+            # Cost of utilities per annual (8000 hours a year)
+            C_UT = (cost_of_heating+cost_of_comp_and_pump_duties+cost_of_cooling)*8000
+            # Cost of raw materials, consider CO feed and catalyst top up
+            # Cost of catalyst $226/kg (sigma aldrich), 8000 hours a year
+            cost_of_catalyst = self.catalystmassflow*226*8000
+            # Cost of CO $10/m3 (alibaba), 8000 hours a year
+            cost_of_CO = self.comassflow/10*8000
+            C_RM = cost_of_catalyst+cost_of_CO
+            # Cost of labour, C_OL
+            # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
+            # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
+            # Wage of chemical plant operator = $62170/pear
+            C_OL = 62170 * 4.5*(6.29 + 31.7*0**2 + 0.23*12)
+
+            COMd = 0.18*FCI+2.73*C_OL+1.23*(C_RM+C_UT)
+
+            # Yield of MF wrt CO, (MF_out - MF_in)/CO
+            yield_of_MF = (self.MFproduction-(self.MFin1+self.MFin2))/self.comassflow
+
+            objective = COMd/yield_of_MF
+
             if storedata == True:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
-                data.extend(hourly_reactor_cost)
+                data.extend(FCI)
+                data.extend(COMd)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
-
 
         elif self.beforeinlettemp < self.inlettemp and self.beforeinlet8_1_temp > self.inlettemp:
             # Heating is required
@@ -262,16 +291,39 @@ class CSTR:
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
             pump_duties = self.P8duty + self.P106duty
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
+            # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
+            # Ignore waste treatment cost C_WT
+            # FCI
             Cbm = self.reactor_cost()
-            # Assume the plant runs for 10 years, 8000 hours per year
-            hourly_reactor_cost = Cbm / (80000)
-            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + hourly_reactor_cost) / self.MFproduction
+            FCI = Cbm
+            # Cost of utilities per annual (8000 hours a year)
+            C_UT = (cost_of_heating + cost_of_comp_and_pump_duties + cost_of_cooling) * 8000
+            # Cost of raw materials, consider CO feed and catalyst top up
+            # Cost of catalyst $226/kg (sigma aldrich), 8000 hours a year
+            cost_of_catalyst = self.catalystmassflow * 226 * 8000
+            # Cost of CO $10/m3 (alibaba), 8000 hours a year
+            cost_of_CO = self.comassflow / 10 * 8000
+            C_RM = cost_of_catalyst + cost_of_CO
+            # Cost of labour, C_OL
+            # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
+            # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
+            # Wage of chemical plant operator = $62170/pear
+            C_OL = 62170 * 4.5*(6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+
+            COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
+
+            # Yield of MF wrt CO, (MF_out - MF_in)/CO
+            yield_of_MF = (self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
+
+            objective = COMd / yield_of_MF
+
             if storedata == True:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
-                data.extend(hourly_reactor_cost)
+                data.extend(FCI)
+                data.extend(COMd)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -286,16 +338,39 @@ class CSTR:
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
             pump_duties = self.P8duty + self.P106duty
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
+            # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
+            # Ignore waste treatment cost C_WT
+            # FCI
             Cbm = self.reactor_cost()
-            # Assume the plant runs for 10 years, 8000 hours per year
-            hourly_reactor_cost = Cbm / (80000)
-            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + hourly_reactor_cost) / self.MFproduction
+            FCI = Cbm
+            # Cost of utilities per annual (8000 hours a year)
+            C_UT = (cost_of_heating + cost_of_comp_and_pump_duties + cost_of_cooling) * 8000
+            # Cost of raw materials, consider CO feed and catalyst top up
+            # Cost of catalyst $226/kg (sigma aldrich), 8000 hours a year
+            cost_of_catalyst = self.catalystmassflow * 226 * 8000
+            # Cost of CO $10/m3 (alibaba), 8000 hours a year
+            cost_of_CO = self.comassflow / 10 * 8000
+            C_RM = cost_of_catalyst + cost_of_CO
+            # Cost of labour, C_OL
+            # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
+            # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
+            # Wage of chemical plant operator = $62170/pear
+            C_OL = 62170 * 4.5*(6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+
+            COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
+
+            # Yield of MF wrt CO, (MF_out - MF_in)/CO
+            yield_of_MF = (self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
+
+            objective = COMd / yield_of_MF
+
             if storedata == True:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
-                data.extend(hourly_reactor_cost)
+                data.extend(FCI)
+                data.extend(COMd)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -310,16 +385,39 @@ class CSTR:
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
             pump_duties = self.P8duty + self.P106duty
             cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
+            # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
+            # Ignore waste treatment cost C_WT
+            # FCI
             Cbm = self.reactor_cost()
-            # Assume the plant runs for 10 years, 8000 hours per year
-            hourly_reactor_cost = Cbm / (80000)
-            objective = (cost_of_heating + cost_of_cooling + cost_of_comp_and_pump_duties + hourly_reactor_cost) / self.MFproduction
+            FCI = Cbm
+            # Cost of utilities per annual (8000 hours a year)
+            C_UT = (cost_of_heating + cost_of_comp_and_pump_duties + cost_of_cooling) * 8000
+            # Cost of raw materials, consider CO feed and catalyst top up
+            # Cost of catalyst $226/kg (sigma aldrich), 8000 hours a year
+            cost_of_catalyst = self.catalystmassflow * 226 * 8000
+            # Cost of CO $10/m3 (alibaba), 8000 hours a year
+            cost_of_CO = self.comassflow / 10 * 8000
+            C_RM = cost_of_catalyst + cost_of_CO
+            # Cost of labour, C_OL
+            # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
+            # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
+            # Wage of chemical plant operator = $62170/pear
+            C_OL = 62170 * 4.5*(6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+
+            COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
+
+            # Yield of MF wrt CO, (MF_out - MF_in)/CO
+            yield_of_MF = (self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
+
+            objective = COMd / yield_of_MF
+
             if storedata == True:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
-                data.extend(hourly_reactor_cost)
+                data.extend(FCI)
+                data.extend(COMd)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
