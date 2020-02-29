@@ -7,7 +7,7 @@ import pickle
 import pandas as pd
 import numpy as np
 
-def optimize_CSTR(storedata,sleep,pso_gen):
+def optimize_CSTR(storedata,sleep,pso_gen,ga):
     Hycase = init_hysys()
     cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
     b_inlettemp = [60, 110]
@@ -37,7 +37,7 @@ def optimize_CSTR(storedata,sleep,pso_gen):
 
     pop, logbook, best = pso_ga(func=func, pmin=pmin, pmax=pmax,
                                 smin=smin, smax=smax,
-                                int_idx=None, params=params, ga=True)
+                                int_idx=None, params=params, ga=ga)
     return best
 
 def read_col_data_store(name):
@@ -113,5 +113,5 @@ def run_sensitivity_analysis(sleep):
         b_reactorP += 10
     read_col_data_store(name='ReactorPSensiAnalysis')
 
-#run_CSTROpt(storedata=False, sleep=0.3, pso_gen=200, name='data')
-run_sensitivity_analysis(sleep=0.3)
+run_CSTROpt(storedata=False, sleep=0.3, pso_gen=200, name='data', ga=False)
+#run_sensitivity_analysis(sleep=0.3)
