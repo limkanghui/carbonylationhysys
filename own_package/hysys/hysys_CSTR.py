@@ -107,9 +107,11 @@ class CSTR:
 
         # Design Pressure in psig
         pressureinpsig = operatingP*0.145038-14.7
-        if pressureinpsig >= 0 and pressureinpsig <= 10:
+        if pressureinpsig >= 0 and pressureinpsig < 5:
             designP = 10
-        elif pressureinpsig > 10 and pressureinpsig <= 1000:
+        elif pressureinpsig >= 5 and pressureinpsig < 10:
+            designP = 15
+        elif pressureinpsig >= 10 and pressureinpsig <= 1000:
             designP = math.exp(0.60608+0.91615*np.log(operatingP)+0.0015655*np.log(operatingP)**2)
         else:
             designP = operatingP*1.1
