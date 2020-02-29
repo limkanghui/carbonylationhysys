@@ -57,12 +57,12 @@ def get_data_from_hysys(best,sleep):
     cstr.reactor_results(storedata=True)
     read_col_data_store()
 
-def run_CSTROpt(storedata, sleep, pso_gen, name):
+def run_CSTROpt(storedata, sleep, pso_gen, ga):
     if storedata == True:
-        best = optimize_CSTR(storedata=storedata, sleep=sleep, pso_gen=pso_gen)
+        best = optimize_CSTR(storedata=storedata, sleep=sleep, pso_gen=pso_gen, ga=ga)
         read_col_data_store(name='cstr')
     else:
-        best = optimize_CSTR(storedata=storedata, sleep=sleep, pso_gen=pso_gen)
+        best = optimize_CSTR(storedata=storedata, sleep=sleep, pso_gen=pso_gen, ga=ga)
         get_data_from_hysys(best=best, sleep=0.3)
 
 def run_sensitivity_analysis(sleep):
@@ -113,5 +113,5 @@ def run_sensitivity_analysis(sleep):
         b_reactorP += 10
     read_col_data_store(name='ReactorPSensiAnalysis')
 
-run_CSTROpt(storedata=False, sleep=0.3, pso_gen=200, name='data', ga=False)
+run_CSTROpt(storedata=False, sleep=0.3, pso_gen=200, ga=False)
 #run_sensitivity_analysis(sleep=0.3)
