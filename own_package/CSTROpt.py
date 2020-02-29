@@ -5,8 +5,9 @@ from own_package.others import create_excel_file, print_df_to_excel
 import openpyxl
 import pickle
 import pandas as pd
+import numpy as np
 
-def optimize_CSTR(storedata):
+def optimize_CSTR(storedata,sleep,pso_gen):
     Hycase = init_hysys()
     cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
     b_inlettemp = [50, 150]
@@ -19,7 +20,7 @@ def optimize_CSTR(storedata):
               'ga_iter_min': 5, 'ga_iter_max': 20, 'iter_gamma': 10,
               'ga_num_min': 10, 'ga_num_max': 20, 'num_beta': 15,
               'tourn_size': 3, 'cxpd': 0.5, 'mutpd': 0.05, 'indpd': 0.5, 'eta': 0.5,
-              'pso_iter': 5, 'swarm_size': 50}
+              'pso_iter': pso_gen, 'swarm_size': 50}
 
     pmin = [x[0] for x in p_store]
     pmax = [x[1] for x in p_store]
@@ -31,7 +32,7 @@ def optimize_CSTR(storedata):
         nonlocal cstr
         inlettemp, catalystweight, residencetime, reactorP = individual
         cstr.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1],
-                           residencetime=individual[2], reactorP=individual[3], storedata=storedata)
+                           residencetime=individual[2], reactorP=individual[3], sleep=sleep)
         return (cstr.reactor_results(storedata),)
 
     pop, logbook, best = pso_ga(func=func, pmin=pmin, pmax=pmax,
@@ -56,7 +57,8 @@ def get_data_from_hysys(best):
     cstr.reactor_results(storedata=True)
     read_col_data_store()
 
-#best = optimize_CSTR(storedata=False)
-best = [90.31975449252243, 0.03521142273858245, 0.29880474581513217, 2000]
-get_data_from_hysys(best=best)
+best = optimize_CSTR(storedata=True,sleep=0, pso_gen=1)
+read_col_data_store()
+#best = [84.576098,0.016262455,0.095356276,3330.973263]
+#get_data_from_hysys(best=best)
 

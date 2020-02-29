@@ -24,7 +24,7 @@ class CSTR:
         #Other variables
         self.E101duty = self.spreadsheetdata.Cell('B9').CellValue *3600
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
-        self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
+        self.reactorsize = self.Reactor.VolumeValue
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
         self.E100duty = self.spreadsheetdata.Cell('D9').CellValue *3600
         self.E102duty = self.spreadsheetdata.Cell('D10').CellValue *3600
@@ -49,50 +49,52 @@ class CSTR:
         self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction','cost of heating','cost of cooling','cost of comp and pump','reactor cost','objective']
 
 
-    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, storedata):
+    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, sleep):
 
         self.spreadsheetdata.Cell('B2').CellValue = inlettemp
         self.spreadsheetdata.Cell('B3').CellValue = catatlystweight
         self.spreadsheetdata.Cell('B4').CellValue = residencetime
         self.spreadsheetdata.Cell('B5').CellValue = reactorP
 
+
         self.inlettemp = inlettemp
         self.catalystweight = catatlystweight
         self.residencetime = residencetime
         self.reactorP = reactorP
 
+        time.sleep(sleep)
+
         # Constraints
 
         # Other variables
-        self.E101duty = self.spreadsheetdata.Cell('B9').CellValue *3600
+        self.E101duty = self.spreadsheetdata.Cell('B9').CellValue * 3600
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
-        self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
+        self.reactorsize = self.Reactor.VolumeValue
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
-        self.E100duty = self.spreadsheetdata.Cell('D9').CellValue *3600
-        self.E102duty = self.spreadsheetdata.Cell('D10').CellValue *3600
-        self.E104duty = self.spreadsheetdata.Cell('D11').CellValue *3600
-        self.E106duty = self.spreadsheetdata.Cell('D12').CellValue *3600
-        self.E111duty = self.spreadsheetdata.Cell('D13').CellValue *3600
-        self.P8duty = self.spreadsheetdata.Cell('B13').CellValue *3600
-        self.P106duty = self.spreadsheetdata.Cell('B14').CellValue *3600
-        self.C101duty = self.spreadsheetdata.Cell('D14').CellValue *3600
-        self.C103duty = self.spreadsheetdata.Cell('D15').CellValue *3600
-        self.C104duty = self.spreadsheetdata.Cell('D16').CellValue *3600
-        self.C100duty = self.spreadsheetdata.Cell('B15').CellValue *3600
-        self.C102duty = self.spreadsheetdata.Cell('B16').CellValue *3600
+        self.E100duty = self.spreadsheetdata.Cell('D9').CellValue * 3600
+        self.E102duty = self.spreadsheetdata.Cell('D10').CellValue * 3600
+        self.E104duty = self.spreadsheetdata.Cell('D11').CellValue * 3600
+        self.E106duty = self.spreadsheetdata.Cell('D12').CellValue * 3600
+        self.E111duty = self.spreadsheetdata.Cell('D13').CellValue * 3600
+        self.P8duty = self.spreadsheetdata.Cell('B13').CellValue * 3600
+        self.P106duty = self.spreadsheetdata.Cell('B14').CellValue * 3600
+        self.C101duty = self.spreadsheetdata.Cell('D14').CellValue * 3600
+        self.C103duty = self.spreadsheetdata.Cell('D15').CellValue * 3600
+        self.C104duty = self.spreadsheetdata.Cell('D16').CellValue * 3600
+        self.C100duty = self.spreadsheetdata.Cell('B15').CellValue * 3600
+        self.C102duty = self.spreadsheetdata.Cell('B16').CellValue * 3600
         self.beforeinlet8_1_temp = self.spreadsheetdata.Cell('B17').CellValue
 
         # Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
-        self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue *3600
+        self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue * 3600
 
-        if storedata == True:
-            self.store_to_data_store()
-            self.save_data_store_pkl()
+        self.store_to_data_store()
 
     def reactor_design(self,):
         # CSTR modelled as a pressure vessel
         # Costing based on Towler's Book
+
         operatingtemp = self.reactortemp
         operatingP = self.reactorP
 
@@ -171,7 +173,7 @@ class CSTR:
         # weight of vessel
         # where ρ is the density of carbon steel SA-285 grade C which is 0.284 lbm/in3
 
-        weight = math.pi*(Di+ts)*(3*Di+0.8*Di)*ts*0.284
+        weight = math.pi*(Di*39.3701+ts)*(3*Di*39.3701+0.8*Di)*ts*0.284*0.453592 # weight in kg
 
         return ts, weight, Di
 
@@ -183,9 +185,19 @@ class CSTR:
         k2 = 0.4479
         k3 = 0.0004
 
-        S = self.reactorsize
+        S_init = self.reactorsize
 
-        cp0_2001 = 10**(k1+k2*math.log10(S)+k3*(math.log10(S))**2)
+        if S_init <= 60:
+            counter = 1
+        else:
+            counter = 2
+
+        S = S_init
+        while S >= 60:
+            S = S_init/(counter)
+            counter+=1
+
+        cp0_2001 = 10**(k1+k2*math.log10(S)+k3*(math.log10(S))**2)*counter
         cp0_2018 = cp0_2001*603.1/397
 
         # Pressure factor for process vessels
@@ -235,6 +247,8 @@ class CSTR:
                 data.extend(Cbm)
                 data.extend(objective)
                 self.data_store.append(data)
+                self.save_data_store_pkl(self.data_store)
+
 
         elif self.beforeinlettemp < self.inlettemp and self.beforeinlet8_1_temp > self.inlettemp:
             # Heating is required
@@ -256,6 +270,7 @@ class CSTR:
                 data.extend(Cbm)
                 data.extend(objective)
                 self.data_store.append(data)
+                self.save_data_store_pkl(self.data_store)
 
         elif self.beforeinlettemp > self.inlettemp and self.beforeinlet8_1_temp < self.inlettemp:
             # Heating is required
@@ -277,6 +292,7 @@ class CSTR:
                 data.extend(Cbm)
                 data.extend(objective)
                 self.data_store.append(data)
+                self.save_data_store_pkl(self.data_store)
 
         else:
             # No heating is required at all
@@ -298,6 +314,7 @@ class CSTR:
                 data.extend(Cbm)
                 data.extend(objective)
                 self.data_store.append(data)
+                self.save_data_store_pkl(self.data_store)
 
         return objective
 
@@ -320,9 +337,9 @@ class CSTR:
 
         return [inlettemp, catalystweight, residencetime, reactorP, reactorsize, reactortemp, conversion, MFproduction]
 
-    def save_data_store_pkl(self):
+    def save_data_store_pkl(self, data):
         with open('data_store.pkl', 'wb') as handle:
-            pickle.dump([self.data_store_columns, self.data_store], handle, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump([self.data_store_columns, data], handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 

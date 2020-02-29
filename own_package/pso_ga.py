@@ -11,6 +11,7 @@ import pickle
 import pandas as pd
 from deap.algorithms import varAnd
 from deap.tools.selection import selRandom
+import time
 
 def generate_part(dim, pmin, pmax, smin, smax, int_idx):
     int_mask = [0]*dim
@@ -160,9 +161,11 @@ def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga):
             if not best or best.fitness.values[0] > part.fitness.values[0]:
                 best = creator.Particle(part)
                 best.fitness.values = part.fitness.values
+            #time.sleep(1)
         for part in pop:
             # Linear annealing for inertia velocity coefficient (the w weights)
             toolbox.update(part, best=best, w=wmax - (wmax-wmin)*g/pso_iter)
+            #time.sleep(1)
         if ga:
             # GA segment
             # Start at max and approach min
@@ -226,7 +229,7 @@ def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga):
                         counter += 1
                     except IndexError:
                         break
-
+        #time.sleep(1)
         pso_hof.update(pop)
 
         # Gather all the fitnesses in one list and print the stats
