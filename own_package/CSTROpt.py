@@ -10,8 +10,8 @@ import numpy as np
 def optimize_CSTR(storedata,sleep,pso_gen):
     Hycase = init_hysys()
     cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
-    b_inlettemp = [50, 150]
-    b_catalystweight = [0.001, 0.05]
+    b_inlettemp = [60, 110]
+    b_catalystweight = [0.0001, 0.05]
     b_residencetime = [0.05, 2]
     b_reactorP = [2000, 4000]
     p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
@@ -57,8 +57,8 @@ def get_data_from_hysys(best,sleep):
     cstr.reactor_results(storedata=True)
     read_col_data_store()
 
-best = optimize_CSTR(storedata=True,sleep=0.3, pso_gen=2)
+best = optimize_CSTR(storedata=False,sleep=0.3, pso_gen=200)
 read_col_data_store()
 #best = [84.576098,0.016262455,0.095356276,3330.973263]
-#get_data_from_hysys(best=best,sleep=0)
+get_data_from_hysys(best=best,sleep=0.3)
 

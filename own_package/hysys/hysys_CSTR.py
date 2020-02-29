@@ -266,7 +266,7 @@ class CSTR:
             COMd = 0.18*FCI+2.73*C_OL+1.23*(C_RM+C_UT)
 
             # Yield of MF wrt CO, (MF_out - MF_in)/CO
-            yield_of_MF = (self.MFproduction-(self.MFin1+self.MFin2))/self.comassflow
+            yield_of_MF = abs(self.MFproduction-(self.MFin1+self.MFin2))/self.comassflow
 
             objective = COMd/yield_of_MF
 
@@ -313,7 +313,7 @@ class CSTR:
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
 
             # Yield of MF wrt CO, (MF_out - MF_in)/CO
-            yield_of_MF = (self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
+            yield_of_MF = abs(self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
 
             objective = COMd / yield_of_MF
 
@@ -360,7 +360,7 @@ class CSTR:
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
 
             # Yield of MF wrt CO, (MF_out - MF_in)/CO
-            yield_of_MF = (self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
+            yield_of_MF = abs(self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
 
             objective = COMd / yield_of_MF
 
@@ -407,7 +407,7 @@ class CSTR:
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
 
             # Yield of MF wrt CO, (MF_out - MF_in)/CO
-            yield_of_MF = (self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
+            yield_of_MF = abs(self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
 
             objective = COMd / yield_of_MF
 
