@@ -153,15 +153,15 @@ class CSTR:
             shell_thickness = designP*Di*39.3701/(2*maxstress*1-1.2*designP)
 
         if Di*3.28084 <= 4:
-            shell_thickness = 1/4
+            shell_thickness = max(1/4, shell_thickness)
         elif Di*3.28084 <= 6:
-            shell_thickness = 5/16
+            shell_thickness = max(5/16, shell_thickness)
         elif Di*3.28084 <= 8:
-            shell_thickness = 3/8
+            shell_thickness = max(3/8, shell_thickness)
         elif Di*3.28084 <= 10:
-            shell_thickness = 7/16
+            shell_thickness = max(7/16,shell_thickness)
         elif Di*3.28084 <= 12:
-            shell_thickness = 1/2
+            shell_thickness = max(1/2, shell_thickness)
 
         # Consider wind and earthquake for vertical column
         def twfunc(tw):
