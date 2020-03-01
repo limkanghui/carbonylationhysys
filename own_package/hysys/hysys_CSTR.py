@@ -217,7 +217,7 @@ class CSTR:
 
         if pressureinbarg <= -0.5:
             Fp = 1.25
-        elif pressureinpsig > -0.5 and ts <= 1/8:
+        elif pressureinpsig > -0.5 and ts <= 1/4:
             Fp = 1
         elif pressureinpsig > -0.5 and ts > 1/4:
             Fp = (((pressureinbarg+1)*Di)/(2*(850-0.6*(pressureinbarg+1)))+0.00315)/0.0063

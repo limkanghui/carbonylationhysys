@@ -113,5 +113,55 @@ def run_sensitivity_analysis(sleep):
         b_reactorP += 10
     read_col_data_store(name='ReactorPSensiAnalysis')
 
-#run_CSTROpt(storedata=False, sleep=0.3, pso_gen=200, ga=False)
+def run_sensitivity_analysis_bestVector(sleep, best):
+    Hycase = init_hysys()
+    cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    b_inlettemp = best[0]
+    b_catalystweight = best[1]
+    b_residencetime = best[2]
+    b_reactorP = best[3]
+    lowerbound = max(b_inlettemp - 10, 50)
+    upperbound = min(b_inlettemp + 10, 110)
+    for i in np.arange(lowerbound, upperbound, 1):
+        DVvector = [i, b_catalystweight, b_residencetime, b_reactorP]
+        cstr.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
+                           reactorP=DVvector[3],
+                           sleep=sleep)
+        cstr.reactor_results(storedata=True)
+    read_col_data_store(name='TempSensiAnalysisforBEST')
+    cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    lowerbound = max(b_catalystweight - 0.01, 0.0001)
+    upperbound = min(b_catalystweight + 0.01, 0.05)
+    for i in np.arange(lowerbound, upperbound, 0.0001):
+        DVvector = [b_inlettemp, i, b_residencetime, b_reactorP]
+        cstr.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
+                           reactorP=DVvector[3],
+                           sleep=sleep)
+        cstr.reactor_results(storedata=True)
+    read_col_data_store(name='CatalystSensiAnalysisforBEST')
+    cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    lowerbound = max(b_residencetime - 0.2, 0.05)
+    upperbound = min(b_residencetime + 0.2, 2)
+    for i in np.arange(lowerbound, upperbound, 0.01):
+        DVvector = [b_inlettemp, b_catalystweight, i, b_reactorP]
+        cstr.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
+                           reactorP=DVvector[3],
+                           sleep=sleep)
+        cstr.reactor_results(storedata=True)
+    read_col_data_store(name='ResidenceTSensiAnalysisforBEST')
+    cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    lowerbound = max(b_reactorP - 200, 2000)
+    upperbound = min(b_reactorP + 200, 4000)
+    for i in np.arange(lowerbound, upperbound, 10):
+        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, i]
+        cstr.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
+                           reactorP=DVvector[3],
+                           sleep=sleep)
+        cstr.reactor_results(storedata=True)
+    read_col_data_store(name='ReactorPSensiAnalysisforBEST')
+
+
+#run_CSTROpt(storedata=False, sleep=0.3, pso_gen=100, ga=True)
 #run_sensitivity_analysis(sleep=0.3)
+best = [110,0.000637505,1.031794779,2000]
+run_sensitivity_analysis_bestVector(sleep=0.3, best=best)
