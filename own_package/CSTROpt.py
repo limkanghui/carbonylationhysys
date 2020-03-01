@@ -55,7 +55,7 @@ def get_data_from_hysys(best,sleep):
     cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
     cstr.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3], sleep=sleep)
     cstr.reactor_results(storedata=True)
-    read_col_data_store()
+    read_col_data_store(name='cstr')
 
 def run_CSTROpt(storedata, sleep, pso_gen, ga):
     if storedata == True:
@@ -113,5 +113,5 @@ def run_sensitivity_analysis(sleep):
         b_reactorP += 10
     read_col_data_store(name='ReactorPSensiAnalysis')
 
-run_CSTROpt(storedata=False, sleep=0.3, pso_gen=200, ga=False)
+#run_CSTROpt(storedata=False, sleep=0.3, pso_gen=200, ga=False)
 #run_sensitivity_analysis(sleep=0.3)
