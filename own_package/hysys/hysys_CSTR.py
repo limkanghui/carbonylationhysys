@@ -275,7 +275,7 @@ class CSTR:
             if storedata == True:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
-                data.extend([cost_of_cooling])
+                data.extend([cost_of_cooling])w
                 data.extend([cost_of_comp_and_pump_duties])
                 data.extend(FCI)
                 data.extend(COMd)

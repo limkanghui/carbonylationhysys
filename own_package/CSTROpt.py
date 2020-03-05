@@ -7,14 +7,22 @@ import pickle
 import pandas as pd
 import numpy as np
 
-def optimize_CSTR(storedata,sleep,pso_gen,ga):
+def optimize_CSTR(storedata,sleep,pso_gen,ga,CSTR):
     Hycase = init_hysys()
-    cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
-    b_inlettemp = [60, 110]
-    b_catalystweight = [0.0001, 0.05]
-    b_residencetime = [0.05, 2]
-    b_reactorP = [2000, 4000]
-    p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+    if CSTR == True:
+        cstr = CSTR(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+        b_inlettemp = [60, 110]
+        b_catalystweight = [0.0001, 0.05]
+        b_residencetime = [10, 500]
+        b_reactorP = [2000, 4000]
+        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+    else:
+        pfr = CSTR(Hycase=Hycase, reactor_name='PFR-100', sprd_name='PFR_opt')
+        b_inlettemp = [60, 110]
+        b_catalystweight = [0.0001, 0.05]
+        b_reactorvolume = [0.05, 2]
+        b_reactorP = [2000, 4000]
+        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
 
     params = {'c1': 1.5, 'c2': 1.5, 'wmin': 0.4, 'wmax': 0.9,
               'ga_iter_min': 5, 'ga_iter_max': 20, 'iter_gamma': 10,
