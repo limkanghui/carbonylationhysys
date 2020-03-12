@@ -8,7 +8,7 @@ from others import create_excel_file, print_df_to_excel
 
 
 class Reactor:
-    def __init__(self, Hycase, reactor_name, sprd_name):
+    def __init__(self, Hycase, reactor_name, sprd_name, type):
         self.Hycase = Hycase
         self.Reactor = Hycase.Flowsheet.Operations.Item(reactor_name)
 
@@ -43,6 +43,8 @@ class Reactor:
         self.comassflow = self.spreadsheetdata.Cell('D17').CellValue * 3600
         self.MFin1 = self.spreadsheetdata.Cell('B17').CellValue *3600
         self.MFin2 = self.spreadsheetdata.Cell('B18').CellValue * 3600
+        if type == 'isothermalcstr':
+            self.isothermal_duty = self.spreadsheetdata.Cell('D18').CellValue *3600
 
         #Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
@@ -123,29 +125,29 @@ class Reactor:
         maxstress = 15000 # defined most conservative value first
 
         designTemp_in_F = designTemp * (9/5) + 32
-        if designTemp_in_F >= -20 and designTemp_in_F <= 650:
+        if -20 <= designTemp_in_F <= 650:
             # Use carbon steel, SA-285, grade C
             maxstress = 13750 # in psi
-        elif designTemp_in_F > 650 and designTemp_in_F <= 750:
+        elif 650 < designTemp_in_F <= 750:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 15000 # in psi
-        elif designTemp_in_F > 750 and designTemp_in_F <= 800:
+        elif 750 < designTemp_in_F <= 800:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 14750 # in psi
-        elif designTemp_in_F > 800 and designTemp_in_F <= 850:
+        elif 800 < designTemp_in_F <= 850:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 14200 # in psi
-        elif designTemp_in_F > 850 and designTemp_in_F <= 900:
+        elif 850 < designTemp_in_F <= 900:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 13100 # in psi
 
         Di = 1 # initialize Di = 1m
-        if type = 'cstr':
+        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr':
             # Assume cylindrical height to diameter is 3:1
             def internalDfunction(D):
                 return math.pi*(D/2)**2*(3*D) - self.reactorsize
             Di = fsolve(internalDfunction, 0.01)
-        elif type = 'pfr':
+        elif type == 'pfr':
             # fixed internal diameter as 1m
             Di = 1
 
@@ -164,11 +166,11 @@ class Reactor:
         elif Di*3.28084 <= 8:
             shell_thickness = max(3/8, shell_thickness)
         elif Di*3.28084 <= 10:
-            shell_thickness = max(7/16,shell_thickness)
+            shell_thickness = max(7/16, shell_thickness)
         elif Di*3.28084 <= 12:
             shell_thickness = max(1/2, shell_thickness)
         ts = 1
-        if type == 'cstr':
+        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr':
             # Consider wind and earthquake for vertical column
             def twfunc(tw):
                 return tw - 0.22*(Di+2*shell_thickness+tw+1/4+18)*((Di)*3)**2/(maxstress*(Di+2*shell_thickness+tw+1/4)**2)
@@ -202,7 +204,7 @@ class Reactor:
         k2 = 0.4479
         k3 = 0.0004
 
-        if type == 'cstr':
+        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr':
             # Using Reactor-mixer values from Appendix A of turton's tb
             # Volume between 0.04 and 60 m3
             k1 = 4.7116
@@ -253,7 +255,7 @@ class Reactor:
         B1 = 2.25
         B2 = 1.82
 
-        if type == 'cstr':
+        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr':
             # Bare module factor for vertical process vessel
             B1 = 2.25
             B2 = 1.82
@@ -274,6 +276,8 @@ class Reactor:
             cost_of_heating = 0.10 * abs(self.E101duty+self.E102duty) * 0.000277778  # cost of heating per hour
             # Combined cooling costs
             cooling_duties = self.E100duty+self.E104duty+self.E106duty+self.E111duty
+            if type == 'isothermalcstr':
+                cooling_duties = self.E100duty + self.E104duty + self.E106duty + self.E111duty + self.isothermal_duty
             cost_of_cooling = 0.02 * cooling_duties * 0.000277778
             # Combined Compressor and Pump Electricity Costs
             compressor_duties = self.C100duty+self.C101duty+self.C102duty+self.C103duty+self.C104duty
@@ -284,6 +288,8 @@ class Reactor:
             # FCI
             cp0_2018, Cbm = self.reactor_cost(type=type)
             FCI = 1.18*Cbm
+            if type == 'cstr2':
+                FCI = 1.18*Cbm*2
             # Cost of utilities per annual (8000 hours a year)
             C_UT = (cost_of_heating+cost_of_comp_and_pump_duties+cost_of_cooling)*8000
             # Cost of raw materials, consider CO feed and catalyst top up
@@ -311,7 +317,7 @@ class Reactor:
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
                 data.extend([cp0_2018])
-                data.extend([Cbm])
+                data.extend(Cbm)
                 data.extend(FCI)
                 data.extend(COMd)
                 data.extend(objective)
@@ -323,6 +329,8 @@ class Reactor:
             cost_of_heating = 0.10 * abs(self.E101duty) * 0.000277778  # cost of heating per hour
             # Combined cooling costs
             cooling_duties = self.E100duty + self.E102duty + self.E104duty + self.E106duty + self.E111duty
+            if type == 'isothermalcstr':
+                cooling_duties = self.E100duty + self.E104duty + self.E106duty + self.E111duty + self.isothermal_duty
             cost_of_cooling = 0.02 * cooling_duties * 0.000277778
             # Combined Compressor and Pump Electricity Costs
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
@@ -333,6 +341,8 @@ class Reactor:
             # FCI
             cp0_2018, Cbm = self.reactor_cost(type=type)
             FCI = 1.18 * Cbm
+            if type == 'cstr2':
+                FCI = 1.18 * Cbm * 2
             # Cost of utilities per annual (8000 hours a year)
             C_UT = (cost_of_heating + cost_of_comp_and_pump_duties + cost_of_cooling) * 8000
             # Cost of raw materials, consider CO feed and catalyst top up
@@ -360,7 +370,7 @@ class Reactor:
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
                 data.extend([cp0_2018])
-                data.extend([Cbm])
+                data.extend(Cbm)
                 data.extend(FCI)
                 data.extend(COMd)
                 data.extend(objective)
@@ -372,6 +382,8 @@ class Reactor:
             cost_of_heating = 0.10 * abs(self.E102duty) * 0.000277778  # cost of heating per hour
             # Combined cooling costs
             cooling_duties = self.E100duty + self.E101duty + self.E104duty + self.E106duty + self.E111duty
+            if type == 'isothermalcstr':
+                cooling_duties = self.E100duty + self.E104duty + self.E106duty + self.E111duty + self.isothermal_duty
             cost_of_cooling = 0.02 * cooling_duties * 0.000277778
             # Combined Compressor and Pump Electricity Costs
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
@@ -382,6 +394,8 @@ class Reactor:
             # FCI
             cp0_2018, Cbm = self.reactor_cost(type=type)
             FCI = 1.18 * Cbm
+            if type == 'cstr2':
+                FCI = 1.18 * Cbm * 2
             # Cost of utilities per annual (8000 hours a year)
             C_UT = (cost_of_heating + cost_of_comp_and_pump_duties + cost_of_cooling) * 8000
             # Cost of raw materials, consider CO feed and catalyst top up
@@ -409,7 +423,7 @@ class Reactor:
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
                 data.extend([cp0_2018])
-                data.extend([Cbm])
+                data.extend(Cbm)
                 data.extend(FCI)
                 data.extend(COMd)
                 data.extend(objective)
@@ -421,6 +435,8 @@ class Reactor:
             cost_of_heating = 0
             # Combine all cooling costs
             cooling_duties = self.E100duty + self.E101duty + self.E102duty + self.E104duty + self.E106duty + self.E111duty
+            if type == 'isothermalcstr':
+                cooling_duties = self.E100duty + self.E104duty + self.E106duty + self.E111duty + self.isothermal_duty
             cost_of_cooling = 0.02 * cooling_duties * 0.000277778
             # Combined Compressor and Pump Electricity Costs
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
@@ -431,6 +447,8 @@ class Reactor:
             # FCI
             cp0_2018, Cbm = self.reactor_cost(type=type)
             FCI = 1.18 * Cbm
+            if type == 'cstr2':
+                FCI = 1.18 * Cbm * 2
             # Cost of utilities per annual (8000 hours a year)
             C_UT = (cost_of_heating + cost_of_comp_and_pump_duties + cost_of_cooling) * 8000
             # Cost of raw materials, consider CO feed and catalyst top up
@@ -458,7 +476,7 @@ class Reactor:
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
                 data.extend([cp0_2018])
-                data.extend([Cbm])
+                data.extend(Cbm)
                 data.extend(FCI)
                 data.extend(COMd)
                 data.extend(objective)

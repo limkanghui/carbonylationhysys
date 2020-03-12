@@ -11,7 +11,7 @@ import numpy as np
 def optimize_reactor(storedata, sleep, pso_gen, ga, type):
     Hycase = init_hysys()
     if type == 'cstr':
-        reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+        reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type=type)
         b_inlettemp = [60, 110]
         b_catalystweight = [0.0001, 0.05]
         # b_residencetime = [0.0015, 0.1723]
@@ -19,9 +19,25 @@ def optimize_reactor(storedata, sleep, pso_gen, ga, type):
         b_reactorP = [2000, 4000]
         p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
     elif type == 'pfr':
-        reactor = Reactor(Hycase=Hycase, reactor_name='PFR-100', sprd_name='PFR_opt')
+        reactor = Reactor(Hycase=Hycase, reactor_name='PFR-100', sprd_name='PFR_opt', type=type)
         b_inlettemp = [60, 110]
         b_catalystweight = [0.0001, 0.05]
+        b_residencetime = [0.0015, 2]
+        b_reactorP = [2000, 4000]
+        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+    elif type == 'cstr2':
+        reactor = Reactor(Hycase=Hycase, reactor_name='R-100-2', sprd_name='CSTR_opt-2', type=type)
+        b_inlettemp = [60, 110]
+        b_catalystweight = [0.0001, 0.05]
+        # b_residencetime = [0.0015, 0.1723]
+        b_residencetime = [0.0015, 2]
+        b_reactorP = [2000, 4000]
+        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+    elif type == 'isothermalcstr':
+        reactor = Reactor(Hycase=Hycase, reactor_name='R-100-3', sprd_name='CSTR_opt-3', type=type)
+        b_inlettemp = [60, 110]
+        b_catalystweight = [0.0001, 0.05]
+        # b_residencetime = [0.0015, 0.1723]
         b_residencetime = [0.0015, 2]
         b_reactorP = [2000, 4000]
         p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
@@ -65,39 +81,42 @@ def read_col_data_store(name):
 def get_data_from_hysys(best, sleep, type):
     Hycase = init_hysys()
     if type == 'cstr':
-        reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+        reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type=type)
         reactor.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3],
                                 sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
         read_col_data_store(name='cstr')
     elif type == 'pfr':
-        reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+        reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type=type)
         reactor.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3],
                                 sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
         read_col_data_store(name='pfr')
-
+    elif type == 'cstr2':
+        reactor = Reactor(Hycase=Hycase, reactor_name='R-100-2', sprd_name='CSTR_opt-2', type=type)
+        reactor.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3],
+                              sleep=sleep)
+        reactor.reactor_results(storedata=True, type=type)
+        read_col_data_store(name='cstr2')
+    elif type == 'isothermalcstr':
+        reactor = Reactor(Hycase=Hycase, reactor_name='R-100-3', sprd_name='CSTR_opt-3', type=type)
+        reactor.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3],
+                              sleep=sleep)
+        reactor.reactor_results(storedata=True, type=type)
+        read_col_data_store(name='isothermalcstr')
 
 def run_ReactorOpt(storedata, sleep, pso_gen, ga, type):
-    if storedata == True:
-        if type == 'cstr':
-            best = optimize_reactor(storedata=storedata, sleep=sleep, pso_gen=pso_gen, ga=ga, type=type)
-            read_col_data_store(name='cstr')
-        elif type == 'pfr':
-            best = optimize_reactor(storedata=storedata, sleep=sleep, pso_gen=pso_gen, ga=ga, type=type)
-            read_col_data_store(name='pfr')
+    if storedata:
+        best = optimize_reactor(storedata=storedata, sleep=sleep, pso_gen=pso_gen, ga=ga, type=type)
+        read_col_data_store(name=type)
     else:
-        if type == 'cstr'
-            best = optimize_reactor(storedata=storedata, sleep=sleep, pso_gen=pso_gen, ga=ga, type=type)
-            get_data_from_hysys(best=best, sleep=0.3, type=type)
-        elif type == 'pfr'
-            best = optimize_reactor(storedata=storedata, sleep=sleep, pso_gen=pso_gen, ga=ga, type=type)
-            get_data_from_hysys(best=best, sleep=0.3, type=type)
+        best = optimize_reactor(storedata=storedata, sleep=sleep, pso_gen=pso_gen, ga=ga, type=type)
+        get_data_from_hysys(best=best, sleep=0.3, type=type)
 
 
 def run_sensitivity_analysis(sleep):
     Hycase = init_hysys()
-    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     b_inlettemp = 60
     b_catalystweight = 0.025
     b_residencetime = 0.707
@@ -107,10 +126,10 @@ def run_sensitivity_analysis(sleep):
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
                            reactorP=DVvector[3],
                            sleep=sleep)
-        reactor.reactor_results(storedata=True)
+        reactor.reactor_results(storedata=True, type='cstr')
         b_inlettemp += 1
     read_col_data_store(name='TempSensiAnalysis')
-    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     b_inlettemp = 80
     b_catalystweight = 0.0001
     while b_catalystweight <= 0.05:
@@ -118,10 +137,10 @@ def run_sensitivity_analysis(sleep):
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
                            reactorP=DVvector[3],
                            sleep=sleep)
-        reactor.reactor_results(storedata=True)
+        reactor.reactor_results(storedata=True, type='cstr')
         b_catalystweight += 0.001
     read_col_data_store(name='CatalystSensiAnalysis')
-    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     b_catalystweight = 0.025
     b_residencetime = 0.050
     while b_residencetime <= 2:
@@ -129,7 +148,7 @@ def run_sensitivity_analysis(sleep):
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
                            reactorP=DVvector[3],
                            sleep=sleep)
-        reactor.reactor_results(storedata=True)
+        reactor.reactor_results(storedata=True, type='cstr')
         b_residencetime += 0.01
     read_col_data_store(name='ResidenceTSensiAnalysis')
     reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
@@ -140,14 +159,14 @@ def run_sensitivity_analysis(sleep):
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
                            reactorP=DVvector[3],
                            sleep=sleep)
-        reactor.reactor_results(storedata=True)
+        reactor.reactor_results(storedata=True, type='cstr')
         b_reactorP += 10
     read_col_data_store(name='ReactorPSensiAnalysis')
 
 
-def run_sensitivity_analysis_bestVector(sleep, best):
+def run_sensitivity_analysis_bestVector(sleep, best, type):
     Hycase = init_hysys()
-    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     b_inlettemp = best[0]
     b_catalystweight = best[1]
     b_residencetime = best[2]
@@ -159,9 +178,9 @@ def run_sensitivity_analysis_bestVector(sleep, best):
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
                            reactorP=DVvector[3],
                            sleep=sleep)
-        reactor.reactor_results(storedata=True)
+        reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='TempSensiAnalysisforBEST')
-    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     lowerbound = max(b_catalystweight - 0.01, 0.0001)
     upperbound = min(b_catalystweight + 0.01, 0.05)
     for i in np.arange(lowerbound, upperbound, 0.0001):
@@ -169,9 +188,9 @@ def run_sensitivity_analysis_bestVector(sleep, best):
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
                            reactorP=DVvector[3],
                            sleep=sleep)
-        reactor.reactor_results(storedata=True)
+        reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='CatalystSensiAnalysisforBEST')
-    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     lowerbound = max(b_residencetime - 0.2, 0.05)
     upperbound = min(b_residencetime + 0.2, 2)
     for i in np.arange(lowerbound, upperbound, 0.01):
@@ -179,9 +198,9 @@ def run_sensitivity_analysis_bestVector(sleep, best):
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
                            reactorP=DVvector[3],
                            sleep=sleep)
-        reactor.reactor_results(storedata=True)
+        reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='ResidenceTSensiAnalysisforBEST')
-    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     lowerbound = max(b_reactorP - 200, 2000)
     upperbound = min(b_reactorP + 200, 4000)
     for i in np.arange(lowerbound, upperbound, 10):
@@ -189,11 +208,11 @@ def run_sensitivity_analysis_bestVector(sleep, best):
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
                            reactorP=DVvector[3],
                            sleep=sleep)
-        reactor.reactor_results(storedata=True)
+        reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='ReactorPSensiAnalysisforBEST')
 
 
-run_ReactorOpt(storedata=False, sleep=0.3, pso_gen=50, ga=True, type='cstr')
+run_ReactorOpt(storedata=False, sleep=0.3, pso_gen=2, ga=True, type='cstr')
 # run_sensitivity_analysis(sleep=0.3)
 # best = [110,0.000637505,1.031794779,2000]
-# run_sensitivity_analysis_bestVector(sleep=0.3, best=best)
+# run_sensitivity_analysis_bestVector(sleep=0.3, best=best, type='cstr')
