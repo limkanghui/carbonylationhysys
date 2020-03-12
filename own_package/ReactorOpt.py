@@ -212,7 +212,7 @@ def run_sensitivity_analysis_bestVector(sleep, best, type):
     read_col_data_store(name='ReactorPSensiAnalysisforBEST')
 
 
-run_ReactorOpt(storedata=False, sleep=0.3, pso_gen=2, ga=True, type='cstr')
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=50, ga=True, type='pfr')
 # run_sensitivity_analysis(sleep=0.3)
 # best = [110,0.000637505,1.031794779,2000]
 # run_sensitivity_analysis_bestVector(sleep=0.3, best=best, type='cstr')

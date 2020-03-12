@@ -24,7 +24,7 @@ class Reactor:
         #Other variables
         self.E101duty = self.spreadsheetdata.Cell('B9').CellValue *3600
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
-        self.reactorsize = self.Reactor.VolumeValue
+        self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
         self.E100duty = self.spreadsheetdata.Cell('D9').CellValue *3600
         self.E102duty = self.spreadsheetdata.Cell('D10').CellValue *3600
@@ -74,7 +74,7 @@ class Reactor:
         # Other variables
         self.E101duty = self.spreadsheetdata.Cell('B9').CellValue * 3600
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
-        self.reactorsize = self.Reactor.VolumeValue
+        self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
         self.E100duty = self.spreadsheetdata.Cell('D9').CellValue * 3600
         self.E102duty = self.spreadsheetdata.Cell('D10').CellValue * 3600
