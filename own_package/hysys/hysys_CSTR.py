@@ -7,7 +7,7 @@ from scipy.optimize import fsolve
 from others import create_excel_file, print_df_to_excel
 
 
-class CSTR:
+class Reactor:
     def __init__(self, Hycase, reactor_name, sprd_name):
         self.Hycase = Hycase
         self.Reactor = Hycase.Flowsheet.Operations.Item(reactor_name)
@@ -50,7 +50,7 @@ class CSTR:
 
         # Used to store all results evaulated from .solve_column to pickle save at the end of an optimization run
         self.data_store = []
-        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction','cost of heating','cost of cooling','cost of comp and pump','FCI','COMd','objective']
+        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP', 'reactorsize', 'reactortemp', 'conversion', 'MFproduction','cost of heating','cost of cooling','cost of comp and pump','cp0_2018','Reactor Cbm','FCI','COMd','objective']
 
 
     def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, sleep):
@@ -98,7 +98,7 @@ class CSTR:
 
         self.store_to_data_store()
 
-    def reactor_design(self,):
+    def reactor_design(self,type):
         # CSTR modelled as a pressure vessel
         # Reactor design based on Towler's Book
 
@@ -120,6 +120,7 @@ class CSTR:
         designTemp = operatingtemp + 25 # in degree celsius
 
         # Maximum Allowable Stress
+        maxstress = 15000 # defined most conservative value first
 
         designTemp_in_F = designTemp * (9/5) + 32
         if designTemp_in_F >= -20 and designTemp_in_F <= 650:
@@ -138,11 +139,15 @@ class CSTR:
             # Use low-alloy (1% Cr and 0.5% Mo) steel, SA-387B
             maxstress = 13100 # in psi
 
-        # Assume cylindrical height to diameter is 3:1
-        def internalDfunction(D):
-            return math.pi*(D/2)**2*(3*D) - self.reactorsize
-
-        Di = fsolve(internalDfunction, 0.01)
+        Di = 1 # initialize Di = 1m
+        if type = 'cstr':
+            # Assume cylindrical height to diameter is 3:1
+            def internalDfunction(D):
+                return math.pi*(D/2)**2*(3*D) - self.reactorsize
+            Di = fsolve(internalDfunction, 0.01)
+        elif type = 'pfr':
+            # fixed internal diameter as 1m
+            Di = 1
 
         # Shell thickness tp calculation
         shell_thickness0 = designP*Di*39.3701/(2*maxstress*0.85-1.2*designP)
@@ -162,22 +167,26 @@ class CSTR:
             shell_thickness = max(7/16,shell_thickness)
         elif Di*3.28084 <= 12:
             shell_thickness = max(1/2, shell_thickness)
+        ts = 1
+        if type == 'cstr':
+            # Consider wind and earthquake for vertical column
+            def twfunc(tw):
+                return tw - 0.22*(Di+2*shell_thickness+tw+1/4+18)*((Di)*3)**2/(maxstress*(Di+2*shell_thickness+tw+1/4)**2)
 
-        # Consider wind and earthquake for vertical column
-        def twfunc(tw):
-            return tw - 0.22*(Di+2*shell_thickness+tw+1/4+18)*((Di)*3)**2/(maxstress*(Di+2*shell_thickness+tw+1/4)**2)
+            tw_solved = fsolve(twfunc, 0.2)
+            tv = (2*shell_thickness+tw_solved)/2
+            tc = 1/8
+            ts = tv + tc
+        elif type == 'pfr':
+            tc = 1 / 8
+            ts = shell_thickness + tc
 
-        tw_solved = fsolve(twfunc, 0.2)
-        tv = (2*shell_thickness+tw_solved)/2
-        tc = 1/8
-        ts = tv + tc
-
-        if ts >= 3/16 and ts <= 1/2:
-            ts = math.ceil(ts/(1/6))
-        elif ts >= 5/8 and ts <= 2:
-            ts = math.ceil(ts/(1/8))
-        elif ts >= 9/4 and ts <= 3:
-            ts = math.ceil(ts/(1/4))
+        if 3/16 <= ts <= 1/2:
+            ts = math.ceil(ts/(1/6))*(1/6)
+        elif 5/8 <= ts <= 2:
+            ts = math.ceil(ts/(1/8))*(1/8)
+        elif 9/4 <= ts <= 3:
+            ts = math.ceil(ts/(1/4))*(1/4)
 
         # weight of vessel
         # where ρ is the density of carbon steel SA-285 grade C which is 0.284 lbm/in3
@@ -186,13 +195,24 @@ class CSTR:
 
         return ts, weight, Di
 
-    def reactor_cost(self):
-        # Using Reactor-mixer values from Appendix A of turton's tb
-        # Volume between 0.04 and 60 m3
+    def reactor_cost(self, type):
 
+        # Initialization
         k1 = 4.7116
         k2 = 0.4479
         k3 = 0.0004
+
+        if type == 'cstr':
+            # Using Reactor-mixer values from Appendix A of turton's tb
+            # Volume between 0.04 and 60 m3
+            k1 = 4.7116
+            k2 = 0.4479
+            k3 = 0.0004
+        elif type == 'pfr':
+            # Using Process vessels-horizontal values from Appendix A of turton's tb
+            k1 = 3.5565
+            k2 = 0.3776
+            k3 = 0.0905
 
         S_init = self.reactorsize
 
@@ -203,7 +223,7 @@ class CSTR:
 
         S = S_init
         while S >= 60:
-            S = S_init/(counter)
+            S = S_init / counter
             counter+=1
 
         cp0_2001 = 10**(k1+k2*math.log10(S)+k3*(math.log10(S))**2)*counter
@@ -213,28 +233,41 @@ class CSTR:
         operatingP = self.reactorP
         pressureinpsig = operatingP * 0.145038 - 14.7
         pressureinbarg = pressureinpsig * 0.0689476
-        ts, weight, Di = self.reactor_design()
+        ts, weight, Di = self.reactor_design(type=type)
+
+        # Initialize Fp value
+        Fp = (((pressureinbarg + 1) * Di) / (2 * (850 - 0.6 * (pressureinbarg + 1))) + 0.00315) / 0.0063
 
         if pressureinbarg <= -0.5:
             Fp = 1.25
-        elif pressureinpsig > -0.5 and ts <= 1/4:
+        elif pressureinbarg > -0.5 and ts <= 1/4:
             Fp = 1
-        elif pressureinpsig > -0.5 and ts > 1/4:
+        elif pressureinbarg > -0.5 and ts > 1/4:
             Fp = (((pressureinbarg+1)*Di)/(2*(850-0.6*(pressureinbarg+1)))+0.00315)/0.0063
 
         # Material Factor
         Fm = 1 # Carbon steel, ID no. 18 from Table A.3
 
-        # Bare module factor for vertical process vessel
+
+        # Bare module factor initialization
         B1 = 2.25
         B2 = 1.82
+
+        if type == 'cstr':
+            # Bare module factor for vertical process vessel
+            B1 = 2.25
+            B2 = 1.82
+        elif type == 'pfr':
+            # Bare module factor for vertical process vessel
+            B1 = 1.49
+            B2 = 1.52
 
         # Bare module cost of reactor
         Cbm = cp0_2018*(B1+(B2*Fp*Fm))
 
-        return Cbm
+        return cp0_2018, Cbm
 
-    def reactor_results(self, storedata):
+    def reactor_results(self, storedata, type):
         # Electricity cost for heating/cooling
         if self.beforeinlettemp < self.inlettemp and self.beforeinlet8_1_temp < self.inlettemp:
             # Heating is required
@@ -249,8 +282,8 @@ class CSTR:
             # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
             # Ignore waste treatment cost C_WT
             # FCI
-            Cbm = self.reactor_cost()
-            FCI = Cbm
+            cp0_2018, Cbm = self.reactor_cost(type=type)
+            FCI = 1.18*Cbm
             # Cost of utilities per annual (8000 hours a year)
             C_UT = (cost_of_heating+cost_of_comp_and_pump_duties+cost_of_cooling)*8000
             # Cost of raw materials, consider CO feed and catalyst top up
@@ -272,18 +305,20 @@ class CSTR:
 
             objective = COMd/yield_of_MF
 
-            if storedata == True:
+            if storedata:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
-                data.extend([cost_of_cooling])w
+                data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
+                data.extend([cp0_2018])
+                data.extend([Cbm])
                 data.extend(FCI)
                 data.extend(COMd)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
 
-        elif self.beforeinlettemp < self.inlettemp and self.beforeinlet8_1_temp > self.inlettemp:
+        elif self.beforeinlettemp < self.inlettemp < self.beforeinlet8_1_temp:
             # Heating is required
             cost_of_heating = 0.10 * abs(self.E101duty) * 0.000277778  # cost of heating per hour
             # Combined cooling costs
@@ -296,8 +331,8 @@ class CSTR:
             # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
             # Ignore waste treatment cost C_WT
             # FCI
-            Cbm = self.reactor_cost()
-            FCI = Cbm
+            cp0_2018, Cbm = self.reactor_cost(type=type)
+            FCI = 1.18 * Cbm
             # Cost of utilities per annual (8000 hours a year)
             C_UT = (cost_of_heating + cost_of_comp_and_pump_duties + cost_of_cooling) * 8000
             # Cost of raw materials, consider CO feed and catalyst top up
@@ -319,18 +354,20 @@ class CSTR:
 
             objective = COMd / yield_of_MF
 
-            if storedata == True:
+            if storedata:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
+                data.extend([cp0_2018])
+                data.extend([Cbm])
                 data.extend(FCI)
                 data.extend(COMd)
                 data.extend(objective)
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
 
-        elif self.beforeinlettemp > self.inlettemp and self.beforeinlet8_1_temp < self.inlettemp:
+        elif self.beforeinlettemp > self.inlettemp > self.beforeinlet8_1_temp:
             # Heating is required
             cost_of_heating = 0.10 * abs(self.E102duty) * 0.000277778  # cost of heating per hour
             # Combined cooling costs
@@ -343,8 +380,8 @@ class CSTR:
             # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
             # Ignore waste treatment cost C_WT
             # FCI
-            Cbm = self.reactor_cost()
-            FCI = Cbm
+            cp0_2018, Cbm = self.reactor_cost(type=type)
+            FCI = 1.18 * Cbm
             # Cost of utilities per annual (8000 hours a year)
             C_UT = (cost_of_heating + cost_of_comp_and_pump_duties + cost_of_cooling) * 8000
             # Cost of raw materials, consider CO feed and catalyst top up
@@ -366,11 +403,13 @@ class CSTR:
 
             objective = COMd / yield_of_MF
 
-            if storedata == True:
+            if storedata:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
+                data.extend([cp0_2018])
+                data.extend([Cbm])
                 data.extend(FCI)
                 data.extend(COMd)
                 data.extend(objective)
@@ -390,8 +429,8 @@ class CSTR:
             # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
             # Ignore waste treatment cost C_WT
             # FCI
-            Cbm = self.reactor_cost()
-            FCI = Cbm
+            cp0_2018, Cbm = self.reactor_cost(type=type)
+            FCI = 1.18 * Cbm
             # Cost of utilities per annual (8000 hours a year)
             C_UT = (cost_of_heating + cost_of_comp_and_pump_duties + cost_of_cooling) * 8000
             # Cost of raw materials, consider CO feed and catalyst top up
@@ -413,11 +452,13 @@ class CSTR:
 
             objective = COMd / yield_of_MF
 
-            if storedata == True:
+            if storedata:
                 data = self.store_to_data_store()
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
+                data.extend([cp0_2018])
+                data.extend([Cbm])
                 data.extend(FCI)
                 data.extend(COMd)
                 data.extend(objective)
