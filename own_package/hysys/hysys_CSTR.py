@@ -342,9 +342,13 @@ class Reactor:
 
             objective = COMd / yield_of_MF
 
-            #Apply Constraints
-            if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
-                objective = 1e20
+            # Apply Constraints
+            if type == 'pfr':
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5438.6877:
+                    objective = 1e20
+            else:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
+                    objective = 1e20
 
             if storedata:
                 data = self.store_to_data_store()
@@ -400,8 +404,12 @@ class Reactor:
             objective = COMd / yield_of_MF
 
             # Apply Constraints
-            if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
-                objective = 1e20
+            if type == 'pfr':
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5438.6877:
+                    objective = 1e20
+            else:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
+                    objective = 1e20
 
             if storedata:
                 data = self.store_to_data_store()
@@ -457,8 +465,12 @@ class Reactor:
             objective = COMd / yield_of_MF
 
             # Apply Constraints
-            if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
-                objective = 1e20
+            if type == 'pfr':
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5438.6877:
+                    objective = 1e20
+            else:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
+                    objective = 1e20
 
             if storedata:
                 data = self.store_to_data_store()
@@ -514,8 +526,12 @@ class Reactor:
             objective = COMd / yield_of_MF
 
             # Apply Constraints
-            if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
-                objective = 1e20
+            if type == 'pfr':
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5438.6877:
+                    objective = 1e20
+            else:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
+                    objective = 1e20
 
             if storedata:
                 data = self.store_to_data_store()
@@ -539,8 +555,6 @@ class Reactor:
         residencetime = self.residencetime
         reactorP = self.reactorP
         methanolCOratio = self.methanolCOratio
-
-        # Constraints
 
         # Other variables
         reactorsize = self.reactorsize
