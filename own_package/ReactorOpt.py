@@ -238,7 +238,8 @@ def run_sensitivity_analysis_bestVector(sleep, best, type):
         reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='MethanolCOratioSensiAnalysisforBEST')
 
-run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=50, ga=True, type='cstr')
+run_ReactorOpt(storedata=True, sleep=0.5, pso_gen=50, ga=True, type='cstr')
 # run_sensitivity_analysis(sleep=0.3)
-# best = [110,0.000637505,1.031794779,2000]
+#best = [89.83665875336027, 0.008469789091178227, 1.894972583420758, 4000, 12.956305834759327]
+#get_data_from_hysys(best=best, sleep=0.3, type='pfr')
 # run_sensitivity_analysis_bestVector(sleep=0.3, best=best, type='cstr')

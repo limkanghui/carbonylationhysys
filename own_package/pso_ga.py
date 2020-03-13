@@ -242,6 +242,7 @@ def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga):
         print(logbook.stream)
 
     print(best.fitness.values)
+    print(best)
 
     # Printing to excel
     write_excel = create_excel_file('./results/pso_ga_results.xlsx')

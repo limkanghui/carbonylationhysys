@@ -26,7 +26,7 @@ class Reactor:
         # Other variables
         self.E101duty = self.spreadsheetdata.Cell('B9').CellValue * 3600
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
-        self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
+        self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue * 3600
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
         self.E100duty = self.spreadsheetdata.Cell('D9').CellValue * 3600
         self.E102duty = self.spreadsheetdata.Cell('D10').CellValue * 3600
@@ -80,7 +80,7 @@ class Reactor:
         # Other variables
         self.E101duty = self.spreadsheetdata.Cell('B9').CellValue * 3600
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
-        self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue
+        self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue * 3600
         self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
         self.E100duty = self.spreadsheetdata.Cell('D9').CellValue * 3600
         self.E102duty = self.spreadsheetdata.Cell('D10').CellValue * 3600
@@ -296,7 +296,11 @@ class Reactor:
             B2 = 1.52
 
         # Bare module cost of reactor
-        Cbm = cp0_2018 * (B1 + (B2 * Fp * Fm))
+        if type == 'pfr':
+            Cbm = cp0_2018 * (B1 + (B2 * Fp * Fm))
+        else:
+            FBM = 4.0
+            Cbm = cp0_2018 * FBM
 
         return cp0_2018, Cbm
 
@@ -356,10 +360,10 @@ class Reactor:
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
                 data.extend([cp0_2018])
-                data.extend(Cbm)
-                data.extend(FCI)
-                data.extend(COMd)
-                data.extend(objective)
+                data.extend([Cbm])
+                data.extend([FCI])
+                data.extend([COMd])
+                data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
 
@@ -402,7 +406,6 @@ class Reactor:
             yield_of_MF = abs(self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
 
             objective = COMd / yield_of_MF
-
             # Apply Constraints
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5438.6877:
@@ -417,10 +420,10 @@ class Reactor:
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
                 data.extend([cp0_2018])
-                data.extend(Cbm)
-                data.extend(FCI)
-                data.extend(COMd)
-                data.extend(objective)
+                data.extend([Cbm])
+                data.extend([FCI])
+                data.extend([COMd])
+                data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
 
@@ -478,10 +481,10 @@ class Reactor:
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
                 data.extend([cp0_2018])
-                data.extend(Cbm)
-                data.extend(FCI)
-                data.extend(COMd)
-                data.extend(objective)
+                data.extend([Cbm])
+                data.extend([FCI])
+                data.extend([COMd])
+                data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
 
@@ -539,13 +542,12 @@ class Reactor:
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
                 data.extend([cp0_2018])
-                data.extend(Cbm)
-                data.extend(FCI)
-                data.extend(COMd)
-                data.extend(objective)
+                data.extend([Cbm])
+                data.extend([FCI])
+                data.extend([COMd])
+                data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
-
         return objective
 
     def store_to_data_store(self):
