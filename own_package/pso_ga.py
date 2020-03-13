@@ -249,7 +249,7 @@ def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga):
     ws = wb[wb.sheetnames[-1]]
 
     ws.cell(1, 1).value = 'Optimal Decision Values'
-    print_array_to_excel(['inlettemp', 'catalystweight', 'residencetime', 'reactorP'],(2,1), ws=ws, axis=1)
+    print_array_to_excel(['inlettemp', 'catalystweight', 'residencetime', 'reactorP','methanolCOratio'],(2,1), ws=ws, axis=1)
     print_array_to_excel(best, (3,1), ws=ws, axis=1)
 
     genfit = logbook.select("gen")
