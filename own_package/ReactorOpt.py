@@ -17,14 +17,16 @@ def optimize_reactor(storedata, sleep, pso_gen, ga, type):
         # b_residencetime = [0.0015, 0.1723]
         b_residencetime = [0.0015, 2]
         b_reactorP = [2000, 4000]
-        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+        b_methanolCOratio = [1, 100]
+        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
     elif type == 'pfr':
         reactor = Reactor(Hycase=Hycase, reactor_name='PFR-100', sprd_name='PFR_opt', type=type)
         b_inlettemp = [60, 110]
         b_catalystweight = [0.0001, 0.05]
         b_residencetime = [0.0015, 2]
         b_reactorP = [2000, 4000]
-        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+        b_methanolCOratio = [1, 100]
+        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
     elif type == 'cstr2':
         reactor = Reactor(Hycase=Hycase, reactor_name='R-100-2', sprd_name='CSTR_opt-2', type=type)
         b_inlettemp = [60, 110]
@@ -32,7 +34,8 @@ def optimize_reactor(storedata, sleep, pso_gen, ga, type):
         # b_residencetime = [0.0015, 0.1723]
         b_residencetime = [0.0015, 2]
         b_reactorP = [2000, 4000]
-        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+        b_methanolCOratio = [1, 100]
+        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
     elif type == 'isothermalcstr':
         reactor = Reactor(Hycase=Hycase, reactor_name='R-100-3', sprd_name='CSTR_opt-3', type=type)
         b_inlettemp = [60, 110]
@@ -40,7 +43,8 @@ def optimize_reactor(storedata, sleep, pso_gen, ga, type):
         # b_residencetime = [0.0015, 0.1723]
         b_residencetime = [0.0015, 2]
         b_reactorP = [2000, 4000]
-        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+        b_methanolCOratio = [1, 100]
+        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
 
     params = {'c1': 1.5, 'c2': 1.5, 'wmin': 0.4, 'wmax': 0.9,
               'ga_iter_min': 5, 'ga_iter_max': 20, 'iter_gamma': 10,
@@ -56,9 +60,9 @@ def optimize_reactor(storedata, sleep, pso_gen, ga, type):
 
     def func(individual):
         nonlocal reactor
-        inlettemp, catalystweight, residencetime, reactorP = individual
+        inlettemp, catalystweight, residencetime, reactorP, methanolCOratio = individual
         reactor.solve_reactor(inlettemp=individual[0], catatlystweight=individual[1],
-                              residencetime=individual[2], reactorP=individual[3], sleep=sleep)
+                              residencetime=individual[2], reactorP=individual[3], methanolCOratio=individual[4], sleep=sleep)
         return (reactor.reactor_results(storedata, type=type),)
 
     pop, logbook, best = pso_ga(func=func, pmin=pmin, pmax=pmax,
@@ -83,25 +87,25 @@ def get_data_from_hysys(best, sleep, type):
     if type == 'cstr':
         reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type=type)
         reactor.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3],
-                                sleep=sleep)
+                              methanolCOratio=best[4], sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
         read_col_data_store(name='cstr')
     elif type == 'pfr':
         reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type=type)
         reactor.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3],
-                                sleep=sleep)
+                              methanolCOratio=best[4], sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
         read_col_data_store(name='pfr')
     elif type == 'cstr2':
         reactor = Reactor(Hycase=Hycase, reactor_name='R-100-2', sprd_name='CSTR_opt-2', type=type)
         reactor.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3],
-                              sleep=sleep)
+                              methanolCOratio=best[4], sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
         read_col_data_store(name='cstr2')
     elif type == 'isothermalcstr':
         reactor = Reactor(Hycase=Hycase, reactor_name='R-100-3', sprd_name='CSTR_opt-3', type=type)
         reactor.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3],
-                              sleep=sleep)
+                              methanolCOratio=best[4], sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
         read_col_data_store(name='isothermalcstr')
 
@@ -121,11 +125,12 @@ def run_sensitivity_analysis(sleep):
     b_catalystweight = 0.025
     b_residencetime = 0.707
     b_reactorP = 4000
+    b_methanolCOratio = 70.74
     while b_inlettemp <= 110:
-        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
-                           reactorP=DVvector[3],
-                           sleep=sleep)
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
         reactor.reactor_results(storedata=True, type='cstr')
         b_inlettemp += 1
     read_col_data_store(name='TempSensiAnalysis')
@@ -133,10 +138,10 @@ def run_sensitivity_analysis(sleep):
     b_inlettemp = 80
     b_catalystweight = 0.0001
     while b_catalystweight <= 0.05:
-        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
-                           reactorP=DVvector[3],
-                           sleep=sleep)
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
         reactor.reactor_results(storedata=True, type='cstr')
         b_catalystweight += 0.001
     read_col_data_store(name='CatalystSensiAnalysis')
@@ -144,24 +149,35 @@ def run_sensitivity_analysis(sleep):
     b_catalystweight = 0.025
     b_residencetime = 0.050
     while b_residencetime <= 2:
-        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
-                           reactorP=DVvector[3],
-                           sleep=sleep)
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
         reactor.reactor_results(storedata=True, type='cstr')
         b_residencetime += 0.01
     read_col_data_store(name='ResidenceTSensiAnalysis')
-    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     b_residencetime = 0.707
     b_reactorP = 2000
     while b_reactorP <= 4000:
-        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP]
+        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
-                           reactorP=DVvector[3],
-                           sleep=sleep)
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
         reactor.reactor_results(storedata=True, type='cstr')
         b_reactorP += 10
     read_col_data_store(name='ReactorPSensiAnalysis')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
+    b_reactorP = 4000
+    b_methanolCOratio = 1
+    while b_methanolCOratio <= 100:
+        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
+        reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
+        reactor.reactor_results(storedata=True, type='cstr')
+        b_methanolCOratio += 5
+    read_col_data_store(name='MethanolCOratioSensiAnalysis')
 
 
 def run_sensitivity_analysis_bestVector(sleep, best, type):
@@ -171,48 +187,58 @@ def run_sensitivity_analysis_bestVector(sleep, best, type):
     b_catalystweight = best[1]
     b_residencetime = best[2]
     b_reactorP = best[3]
+    b_methanolCOratio = best[4]
     lowerbound = max(b_inlettemp - 10, 50)
     upperbound = min(b_inlettemp + 10, 110)
     for i in np.arange(lowerbound, upperbound, 1):
-        DVvector = [i, b_catalystweight, b_residencetime, b_reactorP]
+        DVvector = [i, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
-                           reactorP=DVvector[3],
-                           sleep=sleep)
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='TempSensiAnalysisforBEST')
     reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     lowerbound = max(b_catalystweight - 0.01, 0.0001)
     upperbound = min(b_catalystweight + 0.01, 0.05)
     for i in np.arange(lowerbound, upperbound, 0.0001):
-        DVvector = [b_inlettemp, i, b_residencetime, b_reactorP]
+        DVvector = [b_inlettemp, i, b_residencetime, b_reactorP, b_methanolCOratio]
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
-                           reactorP=DVvector[3],
-                           sleep=sleep)
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='CatalystSensiAnalysisforBEST')
     reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     lowerbound = max(b_residencetime - 0.2, 0.05)
     upperbound = min(b_residencetime + 0.2, 2)
     for i in np.arange(lowerbound, upperbound, 0.01):
-        DVvector = [b_inlettemp, b_catalystweight, i, b_reactorP]
+        DVvector = [b_inlettemp, b_catalystweight, i, b_reactorP, b_methanolCOratio]
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
-                           reactorP=DVvector[3],
-                           sleep=sleep)
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='ResidenceTSensiAnalysisforBEST')
     reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
     lowerbound = max(b_reactorP - 200, 2000)
     upperbound = min(b_reactorP + 200, 4000)
     for i in np.arange(lowerbound, upperbound, 10):
-        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, i]
+        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, i, b_methanolCOratio]
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
-                           reactorP=DVvector[3],
-                           sleep=sleep)
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
         reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='ReactorPSensiAnalysisforBEST')
+    reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type='cstr')
+    lowerbound = max(b_methanolCOratio - 10, 1)
+    upperbound = min(b_methanolCOratio + 10, 100)
+    for i in np.arange(lowerbound, upperbound, 1):
+        DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, i]
+        reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
+                              reactorP=DVvector[3], methanolCOratio=DVvector[4],
+                              sleep=sleep)
+        reactor.reactor_results(storedata=True, type=type)
+    read_col_data_store(name='MethanolCOratioSensiAnalysisforBEST')
 
-
-run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=50, ga=True, type='pfr')
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=50, ga=True, type='cstr')
 # run_sensitivity_analysis(sleep=0.3)
 # best = [110,0.000637505,1.031794779,2000]
 # run_sensitivity_analysis_bestVector(sleep=0.3, best=best, type='cstr')
