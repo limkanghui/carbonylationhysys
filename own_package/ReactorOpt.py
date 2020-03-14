@@ -10,6 +10,7 @@ import numpy as np
 
 
 def optimize_reactor(storedata, sleep, pso_gen, ga, type):
+    global p_store
     Hycase = init_hysys()
     if type == 'cstr':
         reactor = Reactor(Hycase=Hycase, reactor_name='R-100', sprd_name='CSTR_opt', type=type)
@@ -245,11 +246,11 @@ def run_sensitivity_analysis_bestVector(sleep, best, type):
         reactor.reactor_results(storedata=True, type=type)
     read_col_data_store(name='MethanolCOratioSensiAnalysisforBEST')
 
-run_sensitivity_analysis(sleep=0.5)
-run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, ga=True, type='cstr', sensitivityanalysis=True)
-run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, ga=True, type='pfr', sensitivityanalysis=True)
-run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, ga=True, type='cstr2', sensitivityanalysis=True)
-run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, ga=True, type='isothermal2', sensitivityanalysis=True)
+#run_sensitivity_analysis(sleep=0.5)
+#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, ga=True, type='cstr', sensitivityanalysis=True)
+#run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, ga=True, type='pfr', sensitivityanalysis=True)
+#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, ga=True, type='cstr2', sensitivityanalysis=True)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, ga=True, type='isothermalcstr', sensitivityanalysis=True)
 # run_sensitivity_analysis(sleep=0.3)
 #best = [89.83665875336027, 0.008469789091178227, 1.894972583420758, 4000, 12.956305834759327]
 #get_data_from_hysys(best=best, sleep=0.3, type='pfr')
