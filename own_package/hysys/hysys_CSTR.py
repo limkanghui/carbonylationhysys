@@ -58,7 +58,7 @@ class Reactor:
                                    'reactortemp', 'conversion', 'MFproduction', 'cost of heating', 'cost of cooling',
                                    'cost of comp and pump', 'cp0_2018', 'Reactor Cbm', 'FCI', 'COMd', 'objective']
 
-    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, methanolCOratio, sleep):
+    def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, methanolCOratio, sleep, type):
 
         self.spreadsheetdata.Cell('B2').CellValue = inlettemp
         self.spreadsheetdata.Cell('B3').CellValue = catatlystweight
@@ -99,6 +99,8 @@ class Reactor:
         self.comassflow = self.spreadsheetdata.Cell('D17').CellValue * 3600
         self.MFin1 = self.spreadsheetdata.Cell('B17').CellValue * 3600
         self.MFin2 = self.spreadsheetdata.Cell('B18').CellValue * 3600
+        if type == 'isothermalcstr':
+            self.isothermal_duty = self.spreadsheetdata.Cell('D18').CellValue * 3600
 
         # Objective
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
