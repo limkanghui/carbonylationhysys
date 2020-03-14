@@ -54,9 +54,11 @@ class Reactor:
 
         # Used to store all results evaulated from .solve_column to pickle save at the end of an optimization run
         self.data_store = []
-        self.data_store_columns = ['inlettemp', 'catalystweight', 'residencetime', 'reactorP','methanolCOratio', 'reactorsize',
-                                   'reactortemp', 'conversion', 'MFproduction', 'cost of heating', 'cost of cooling',
-                                   'cost of comp and pump', 'cp0_2018', 'Reactor Cbm', 'FCI', 'COMd', 'objective']
+        self.data_store_columns = ['inlet temp', 'catalyst weight', 'residence time', 'reactor pressure',
+                                   'methanol CO ratio', 'reactor size', 'reactor temp', 'carbonylation vap fraction',
+                                   'conversion', 'MF production', 'cost of heating', 'cost of cooling',
+                                   'cost of comp and pump', 'cp0_2018', 'Reactor Cbm', 'FCI', 'labour cost',
+                                   'raw material cost', 'utilities cost', 'COMd', 'MF yield', 'objective']
 
     def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, methanolCOratio, sleep, type):
 
@@ -349,11 +351,13 @@ class Reactor:
             objective = COMd / yield_of_MF
 
             # Apply Constraints
+            # MF production from base case = 5438.6877 kg/h
+            # Allow 2% error, minimum bound = 5329.76 kg/h, maximum bound = 5547.45 kg/h
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5438.6877:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
 
             if storedata:
@@ -364,7 +368,11 @@ class Reactor:
                 data.extend([cp0_2018])
                 data.extend([Cbm])
                 data.extend([FCI])
+                data.extend([C_OL])
+                data.extend([C_RM])
+                data.extend([C_UT])
                 data.extend([COMd])
+                data.extend([yield_of_MF])
                 data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -408,12 +416,15 @@ class Reactor:
             yield_of_MF = abs(self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
 
             objective = COMd / yield_of_MF
+
             # Apply Constraints
+            # MF production from base case = 5438.6877 kg/h
+            # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5438.6877:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
 
             if storedata:
@@ -424,7 +435,11 @@ class Reactor:
                 data.extend([cp0_2018])
                 data.extend([Cbm])
                 data.extend([FCI])
+                data.extend([C_OL])
+                data.extend([C_RM])
+                data.extend([C_UT])
                 data.extend([COMd])
+                data.extend([yield_of_MF])
                 data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -470,11 +485,13 @@ class Reactor:
             objective = COMd / yield_of_MF
 
             # Apply Constraints
+            # MF production from base case = 5438.6877 kg/h
+            # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5438.6877:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
 
             if storedata:
@@ -485,7 +502,11 @@ class Reactor:
                 data.extend([cp0_2018])
                 data.extend([Cbm])
                 data.extend([FCI])
+                data.extend([C_OL])
+                data.extend([C_RM])
+                data.extend([C_UT])
                 data.extend([COMd])
+                data.extend([yield_of_MF])
                 data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -531,11 +552,13 @@ class Reactor:
             objective = COMd / yield_of_MF
 
             # Apply Constraints
+            # MF production from base case = 5438.6877 kg/h
+            # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5438.6877:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5438.6877:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
 
             if storedata:
@@ -546,7 +569,11 @@ class Reactor:
                 data.extend([cp0_2018])
                 data.extend([Cbm])
                 data.extend([FCI])
+                data.extend([C_OL])
+                data.extend([C_RM])
+                data.extend([C_UT])
                 data.extend([COMd])
+                data.extend([yield_of_MF])
                 data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -560,6 +587,9 @@ class Reactor:
         reactorP = self.reactorP
         methanolCOratio = self.methanolCOratio
 
+        # Constraint
+        carbonylation_vap = self.carbonylation_vap
+
         # Other variables
         reactorsize = self.reactorsize
         reactortemp = self.reactortemp
@@ -568,7 +598,8 @@ class Reactor:
         conversion = self.conversion
         MFproduction = self.MFproduction
 
-        return [inlettemp, catalystweight, residencetime, reactorP, methanolCOratio, reactorsize, reactortemp, conversion, MFproduction]
+        return [inlettemp, catalystweight, residencetime, reactorP, methanolCOratio, reactorsize, reactortemp,
+                carbonylation_vap, conversion, MFproduction]
 
     def save_data_store_pkl(self, data):
         with open('data_store.pkl', 'wb') as handle:
