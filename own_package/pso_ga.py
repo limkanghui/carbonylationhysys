@@ -106,7 +106,7 @@ def ga_hybrid_gaussianmutate(individual, sigma, low, up, indpb):
 def eval_func(part):
     return (sum(part),)
 
-def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga):
+def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga, type):
     # Setting params
     c1, c2, wmin, wmax, ga_iter_min, ga_iter_max, iter_gamma, ga_num_min, ga_num_max, num_beta,\
     tourn_size, cxpb, mutpb, indpd, eta,\
@@ -245,7 +245,7 @@ def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga):
     print(best)
 
     # Printing to excel
-    write_excel = create_excel_file('./results/pso_ga_results.xlsx')
+    write_excel = create_excel_file('./results/pso_ga_{}_results.xlsx'.format(type))
     wb = openpyxl.load_workbook(write_excel)
     ws = wb[wb.sheetnames[-1]]
 
@@ -274,18 +274,3 @@ def pso_ga(func, pmin, pmax, smin, smax, int_idx, params, ga):
     wb.save(write_excel)
 
     return pop, logbook, best
-
-
-if __name__ == "__main__":
-    params = {'c1': 1.5, 'c2':1.5, 'wmin': 0.4, 'wmax': 0.9,
-              'ga_iter_min': 5, 'ga_iter_max': 20, 'iter_gamma': 10,
-              'ga_num_min': 10, 'ga_num_max': 20, 'num_beta': 15,
-              'tourn_size':3, 'cxpd': 0.5, 'mutpd':0.05, 'indpd': 0.5, 'eta':0.5,
-              'pso_iter':200, 'swarm_size': 50}
-    pmin = [-10,-10]
-    pmax = [10,10]
-    smin = [abs(x-y)*0.01 for x,y in zip(pmin, pmax)]
-    smax = [abs(x-y)*0.5 for x,y in zip(pmin, pmax)]
-    pso_ga(func=benchmarks.rosenbrock,pmin=pmin,pmax=pmax,
-           smin=smin, smax=smax,
-           int_idx=[1], params=params, ga=True)
