@@ -309,19 +309,28 @@ class Reactor:
         return cp0_2018, Cbm
 
     def reactor_results(self, storedata, type):
+        # Unit cost of utilities from Design, Optimization, and Retrofit of the Formic Acid Process I: Base
+        # Case Design and Dividing-Wall Column Retrofit
+        # Cooling water = 0.244 $/GJ
+        # Chilled water = 4.43 $/GJ
+        # Low pressure steam = 13.28 $/GJ
+        # Medium pressure steam = 14.19 $/GJ
+        # Fuel oil (for compressors) = 14.2 $/GJ
+        # Electricity (for pumps) = 16.8 $/GJ
+
         # Electricity cost for heating/cooling
         if self.beforeinlettemp < self.inlettemp and self.beforeinlet8_1_temp < self.inlettemp:
             # Heating is required
-            cost_of_heating = 0.10 * abs(self.E101duty + self.E102duty) * 0.000277778  # cost of heating per hour
+            cost_of_heating = abs(self.E101duty + self.E102duty) / 10e6 * 13.28  # cost of heating per hour
             # Combined cooling costs
             cooling_duties = self.E100duty + self.E104duty + self.E106duty + self.E111duty
             if type == 'isothermalcstr':
                 cooling_duties = self.E100duty + self.E104duty + self.E106duty + self.E111duty + self.isothermal_duty
-            cost_of_cooling = 0.02 * cooling_duties * 0.000277778
+            cost_of_cooling = cooling_duties / 10e6 * 0.244  # cost of cooling per hour
             # Combined Compressor and Pump Electricity Costs
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
             pump_duties = self.P8duty + self.P106duty
-            cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
+            cost_of_comp_and_pump_duties = compressor_duties / 10e6 * 14.2 + pump_duties / 10e6 * 16.8
             # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
             # Ignore waste treatment cost C_WT
             # FCI
@@ -379,16 +388,16 @@ class Reactor:
 
         elif self.beforeinlettemp < self.inlettemp < self.beforeinlet8_1_temp:
             # Heating is required
-            cost_of_heating = 0.10 * abs(self.E101duty) * 0.000277778  # cost of heating per hour
+            cost_of_heating = abs(self.E101duty) / 10e6 * 13.28  # cost of heating per hour
             # Combined cooling costs
             cooling_duties = self.E100duty + self.E102duty + self.E104duty + self.E106duty + self.E111duty
             if type == 'isothermalcstr':
                 cooling_duties = self.E100duty + self.E104duty + self.E106duty + self.E111duty + self.isothermal_duty
-            cost_of_cooling = 0.02 * cooling_duties * 0.000277778
+            cost_of_cooling = cooling_duties / 10e6 * 0.244  # cost of cooling per hour
             # Combined Compressor and Pump Electricity Costs
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
             pump_duties = self.P8duty + self.P106duty
-            cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
+            cost_of_comp_and_pump_duties = compressor_duties / 10e6 * 14.2 + pump_duties / 10e6 * 16.8
             # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
             # Ignore waste treatment cost C_WT
             # FCI
@@ -446,16 +455,16 @@ class Reactor:
 
         elif self.beforeinlettemp > self.inlettemp > self.beforeinlet8_1_temp:
             # Heating is required
-            cost_of_heating = 0.10 * abs(self.E102duty) * 0.000277778  # cost of heating per hour
+            cost_of_heating = abs(self.E102duty) / 10e6 * 13.28  # cost of heating per hour
             # Combined cooling costs
             cooling_duties = self.E100duty + self.E101duty + self.E104duty + self.E106duty + self.E111duty
             if type == 'isothermalcstr':
                 cooling_duties = self.E100duty + self.E104duty + self.E106duty + self.E111duty + self.isothermal_duty
-            cost_of_cooling = 0.02 * cooling_duties * 0.000277778
+            cost_of_cooling = cooling_duties / 10e6 * 0.244  # cost of cooling per hour
             # Combined Compressor and Pump Electricity Costs
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
             pump_duties = self.P8duty + self.P106duty
-            cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
+            cost_of_comp_and_pump_duties = compressor_duties / 10e6 * 14.2 + pump_duties / 10e6 * 16.7
             # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
             # Ignore waste treatment cost C_WT
             # FCI
@@ -518,11 +527,11 @@ class Reactor:
             cooling_duties = self.E100duty + self.E101duty + self.E102duty + self.E104duty + self.E106duty + self.E111duty
             if type == 'isothermalcstr':
                 cooling_duties = self.E100duty + self.E104duty + self.E106duty + self.E111duty + self.isothermal_duty
-            cost_of_cooling = 0.02 * cooling_duties * 0.000277778
+            cost_of_cooling = cooling_duties / 10e6 * 0.244  # cost of cooling per hour
             # Combined Compressor and Pump Electricity Costs
             compressor_duties = self.C100duty + self.C101duty + self.C102duty + self.C103duty + self.C104duty
             pump_duties = self.P8duty + self.P106duty
-            cost_of_comp_and_pump_duties = 0.2 * (compressor_duties + pump_duties) * 0.000277778
+            cost_of_comp_and_pump_duties = compressor_duties / 10e6 * 14.2 + pump_duties / 10e6 * 16.8
             # Cost of Manufacture w/o depreciation: COMd = 0.18 FCI + 2.73C_OL + 1.23(C_RM + C_WT + C_UT)
             # Ignore waste treatment cost C_WT
             # FCI
