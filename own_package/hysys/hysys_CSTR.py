@@ -366,7 +366,7 @@ class Reactor:
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or self.reactorsize > 100:
                     objective = 1e20
 
             if storedata:
@@ -433,7 +433,7 @@ class Reactor:
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or self.reactorsize > 100:
                     objective = 1e20
 
             if storedata:
@@ -500,7 +500,7 @@ class Reactor:
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or self.reactorsize > 100:
                     objective = 1e20
 
             if storedata:
@@ -567,7 +567,7 @@ class Reactor:
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or self.reactorsize > 100:
                     objective = 1e20
 
             if storedata:
