@@ -185,7 +185,7 @@ class Reactor:
             # Consider wind and earthquake for vertical column
             def twfunc(tw):
                 return tw - 0.22 * (Di + 2 * shell_thickness + tw + 1 / 4 + 18) * ((Di) * 3) ** 2 / (
-                            maxstress * (Di + 2 * shell_thickness + tw + 1 / 4) ** 2)
+                        maxstress * (Di + 2 * shell_thickness + tw + 1 / 4) ** 2)
 
             tw_solved = fsolve(twfunc, 0.2)
             tv = (2 * shell_thickness + tw_solved) / 2
@@ -308,7 +308,7 @@ class Reactor:
 
         return cp0_2018, Cbm
 
-    def reactor_results(self, storedata, type):
+    def reactor_results(self, storedata, type, limitreactorsize):
         # Unit cost of utilities from Design, Optimization, and Retrofit of the Formic Acid Process I: Base
         # Case Design and Dividing-Wall Column Retrofit
         # Cooling water = 0.244 $/GJ
@@ -349,7 +349,7 @@ class Reactor:
             # Cost of labour, C_OL
             # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
             # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
-            # Wage of chemical plant operator = $62170/pear
+            # Wage of chemical plant operator = $62170/year
             C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
 
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
@@ -357,16 +357,25 @@ class Reactor:
             # Yield of MF wrt CO, (MF_out - MF_in)/CO
             yield_of_MF = abs(self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
 
-            objective = COMd / yield_of_MF
+            # TAC
+            ACCR = 0.163  # interest rate i = 0.1, with 10 year plant life
+            TAC = COMd/self.MFproduction + ACCR * FCI / self.MFproduction
+
+            # Final Objective
+            objective = TAC
 
             # Apply Constraints
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, maximum bound = 5547.45 kg/h
+            if limitreactorsize is None:
+                limitreactorsize = 1e20
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
+                        self.reactorsize > limitreactorsize:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or self.reactorsize > 100:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
+                        self.reactorsize > limitreactorsize:
                     objective = 1e20
 
             if storedata:
@@ -416,7 +425,7 @@ class Reactor:
             # Cost of labour, C_OL
             # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
             # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
-            # Wage of chemical plant operator = $62170/pear
+            # Wage of chemical plant operator = $62170/year
             C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
 
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
@@ -424,16 +433,26 @@ class Reactor:
             # Yield of MF wrt CO, (MF_out - MF_in)/CO
             yield_of_MF = abs(self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
 
-            objective = COMd / yield_of_MF
+            # TAC
+            ACCR = 0.163  # interest rate i = 0.1, with 10 year plant life
+            TAC = COMd / self.MFproduction + ACCR * FCI / self.MFproduction
+
+            # Final Objective
+            objective = TAC
 
             # Apply Constraints
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
+            if limitreactorsize is None:
+                limitreactorsize = 1e20
+
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
+                        self.reactorsize > limitreactorsize:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or self.reactorsize > 100:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
+                        self.reactorsize > limitreactorsize:
                     objective = 1e20
 
             if storedata:
@@ -483,7 +502,7 @@ class Reactor:
             # Cost of labour, C_OL
             # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
             # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
-            # Wage of chemical plant operator = $62170/pear
+            # Wage of chemical plant operator = $62170/year
             C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
 
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
@@ -491,16 +510,26 @@ class Reactor:
             # Yield of MF wrt CO, (MF_out - MF_in)/CO
             yield_of_MF = abs(self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
 
-            objective = COMd / yield_of_MF
+            # TAC
+            ACCR = 0.163  # interest rate i = 0.1, with 10 year plant life
+            TAC = COMd / self.MFproduction + ACCR * FCI / self.MFproduction
+
+            # Final Objective
+            objective = TAC
 
             # Apply Constraints
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
+            if limitreactorsize is None:
+                limitreactorsize = 1e20
+
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
+                        self.reactorsize > limitreactorsize:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or self.reactorsize > 100:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
+                        self.reactorsize > limitreactorsize:
                     objective = 1e20
 
             if storedata:
@@ -550,7 +579,7 @@ class Reactor:
             # Cost of labour, C_OL
             # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
             # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
-            # Wage of chemical plant operator = $62170/pear
+            # Wage of chemical plant operator = $62170/year
             C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
 
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
@@ -558,16 +587,26 @@ class Reactor:
             # Yield of MF wrt CO, (MF_out - MF_in)/CO
             yield_of_MF = abs(self.MFproduction - (self.MFin1 + self.MFin2)) / self.comassflow
 
-            objective = COMd / yield_of_MF
+            # TAC
+            ACCR = 0.163  # interest rate i = 0.1, with 10 year plant life
+            TAC = COMd / self.MFproduction + ACCR * FCI / self.MFproduction
+
+            # Final Objective
+            objective = TAC
 
             # Apply Constraints
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
+            if limitreactorsize is None:
+                limitreactorsize = 1e20
+
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
+                        self.reactorsize > limitreactorsize:
                     objective = 1e20
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or self.reactorsize > 100:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
+                        self.reactorsize > limitreactorsize:
                     objective = 1e20
 
             if storedata:
