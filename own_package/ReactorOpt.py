@@ -58,7 +58,7 @@ def optimize_reactor(storedata, sleep, pso_gen, ga, type, basecase, limitreactor
               'ga_iter_min': 5, 'ga_iter_max': 20, 'iter_gamma': 10,
               'ga_num_min': 10, 'ga_num_max': 20, 'num_beta': 15,
               'tourn_size': 3, 'cxpd': 0.5, 'mutpd': 0.05, 'indpd': 0.5, 'eta': 0.5,
-              'pso_iter': pso_gen, 'swarm_size': 50}
+              'pso_iter': pso_gen, 'swarm_size': 300}
 
     pmin = [x[0] for x in p_store]
     pmax = [x[1] for x in p_store]
@@ -145,7 +145,9 @@ def run_ReactorOpt(storedata, sleep, pso_gen, ga, type, sensitivityanalysis, bas
                                 limitreactorsize=limitreactorsize)
         get_data_from_hysys(best=best, sleep=0.5, type=type, basecase=basecase, limitreactorsize=limitreactorsize)
         if sensitivityanalysis:
-            run_sensitivity_analysis_bestVector(sleep=sleep, best=best, type=type, limitreactorsize=limitreactorsize)
+            run_sensitivity_analysis_bestVector(sleep=sleep, best=best, type=type, basecase=basecase,
+                                                limitreactorsize=limitreactorsize)
+
 
 
 def run_sensitivity_analysis(sleep, type, basecase, limitreactorsize):
@@ -289,12 +291,13 @@ def run_sensitivity_analysis_bestVector(sleep, best, type, basecase, limitreacto
             reactor.reactor_results(storedata=True, type=type, limitreactorsize=limitreactorsize)
         read_col_data_store(name='MethanolCOratioSensiAnalysisforBEST_{}'.format(type))
 
-run_sensitivity_analysis(sleep=0.5, type='cstr', basecase=True, limitreactorsize=None)
-#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, ga=True, type='cstr', sensitivityanalysis=True, basecase=True, limitreactorsize=None)
-#run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, ga=True, type='pfr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
+#run_sensitivity_analysis(sleep=0.5, type='cstr', basecase=True, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=20, ga=True, type='cstr', sensitivityanalysis=True, basecase=True, limitreactorsize=None)
+#run_ReactorOpt(storedata=False, sleep=1, pso_gen=20, ga=True, type='pfr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
 #run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, ga=True, type='cstr2', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
 #run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, ga=True, type='isothermalcstr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
+
 # run_sensitivity_analysis(sleep=0.3)
-#best = [97.63970819092785, 0.0016952364887011162, 4, 4000, 14.297066231446248]
+#best = [110, 0.0010888834361106087, 3.999155489574233, 4000]
 #get_data_from_hysys(best=best, sleep=1, type='cstr')
-#run_sensitivity_analysis_bestVector(sleep=0.3, best=best, type='cstr')
+#run_sensitivity_analysis_bestVector(sleep=0.3, best=best, type='cstr', basecase=True, limitreactorsize=None)

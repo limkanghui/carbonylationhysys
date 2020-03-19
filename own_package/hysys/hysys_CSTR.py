@@ -349,8 +349,12 @@ class Reactor:
             # Cost of labour, C_OL
             # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
             # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
+            # if cstr2 (two CSTRs in series, N_np = 2 reactors, 5 compressors, 6 heat exchangers
             # Wage of chemical plant operator = $62170/year
-            C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+            if not type == 'cstr2':
+                C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+            else:
+                C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 13)
 
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
 
@@ -368,15 +372,15 @@ class Reactor:
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, maximum bound = 5547.45 kg/h
             if limitreactorsize is None:
-                limitreactorsize = 1e20
+                limitreactorsize = 1e8
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize:
-                    objective = 1e20
+                    objective = 1e8
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize:
-                    objective = 1e20
+                    objective = 1e8
 
             if storedata:
                 data = self.store_to_data_store()
@@ -425,8 +429,12 @@ class Reactor:
             # Cost of labour, C_OL
             # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
             # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
+            # if cstr2 (two CSTRs in series, N_np = 2 reactors, 5 compressors, 6 heat exchangers
             # Wage of chemical plant operator = $62170/year
-            C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+            if not type == 'cstr2':
+                C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+            else:
+                C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 13)
 
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
 
@@ -444,16 +452,16 @@ class Reactor:
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
             if limitreactorsize is None:
-                limitreactorsize = 1e20
+                limitreactorsize = 1e8
 
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize:
-                    objective = 1e20
+                    objective = 1e8
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize:
-                    objective = 1e20
+                    objective = 1e8
 
             if storedata:
                 data = self.store_to_data_store()
@@ -502,8 +510,12 @@ class Reactor:
             # Cost of labour, C_OL
             # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
             # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
+            # if cstr2 (two CSTRs in series, N_np = 2 reactors, 5 compressors, 6 heat exchangers
             # Wage of chemical plant operator = $62170/year
-            C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+            if not type == 'cstr2':
+                C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+            else:
+                C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 13)
 
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
 
@@ -521,16 +533,16 @@ class Reactor:
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
             if limitreactorsize is None:
-                limitreactorsize = 1e20
+                limitreactorsize = 1e8
 
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize:
-                    objective = 1e20
+                    objective = 1e8
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize:
-                    objective = 1e20
+                    objective = 1e8
 
             if storedata:
                 data = self.store_to_data_store()
@@ -579,8 +591,12 @@ class Reactor:
             # Cost of labour, C_OL
             # C_OL = wage * 4.5(6.29 + 31.7P^2 + 0.23 N_np)^0.5
             # P = 0, N_np = 1 reactor, 5 compressors, 6 heat exchangers
+            # if cstr2 (two CSTRs in series, N_np = 2 reactors, 5 compressors, 6 heat exchangers
             # Wage of chemical plant operator = $62170/year
-            C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+            if not type == 'cstr2':
+                C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 12)
+            else:
+                C_OL = 62170 * 4.5 * (6.29 + 31.7 * 0 ** 2 + 0.23 * 13)
 
             COMd = 0.18 * FCI + 2.73 * C_OL + 1.23 * (C_RM + C_UT)
 
@@ -598,16 +614,16 @@ class Reactor:
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
             if limitreactorsize is None:
-                limitreactorsize = 1e20
+                limitreactorsize = 1e8
 
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize:
-                    objective = 1e20
+                    objective = 1e8
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize:
-                    objective = 1e20
+                    objective = 1e8
 
             if storedata:
                 data = self.store_to_data_store()
