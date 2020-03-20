@@ -22,6 +22,7 @@ class Reactor:
 
         # Constraints
         self.carbonylation_vap = self.spreadsheetdata.Cell('D2').CellValue * 3600
+        self.h20catalystmoleratio = self.spreadsheetdata.Cell('D3').CellValue
 
         # Other variables
         self.E101duty = self.spreadsheetdata.Cell('B9').CellValue * 3600
@@ -78,6 +79,7 @@ class Reactor:
 
         # Constraints
         self.carbonylation_vap = self.spreadsheetdata.Cell('D2').CellValue * 3600
+        self.h20catalystmoleratio = self.spreadsheetdata.Cell('D3').CellValue
 
         # Other variables
         self.E101duty = self.spreadsheetdata.Cell('B9').CellValue * 3600
@@ -375,11 +377,11 @@ class Reactor:
                 limitreactorsize = 1e8
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize:
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
                     objective = 1e8
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize:
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
                     objective = 1e8
 
             if storedata:
@@ -456,11 +458,11 @@ class Reactor:
 
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize:
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
                     objective = 1e8
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize:
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
                     objective = 1e8
 
             if storedata:
@@ -537,11 +539,11 @@ class Reactor:
 
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize:
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
                     objective = 1e8
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize:
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
                     objective = 1e8
 
             if storedata:
@@ -618,11 +620,11 @@ class Reactor:
 
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize:
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
                     objective = 1e8
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize:
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
                     objective = 1e8
 
             if storedata:
