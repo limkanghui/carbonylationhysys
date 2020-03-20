@@ -57,9 +57,10 @@ class Reactor:
         self.data_store = []
         self.data_store_columns = ['inlet temp', 'catalyst weight', 'residence time', 'reactor pressure',
                                    'methanol CO ratio', 'reactor size', 'reactor temp', 'carbonylation vap fraction',
-                                   'conversion', 'MF production', 'cost of heating', 'cost of cooling',
-                                   'cost of comp and pump', 'cp0_2018', 'Reactor Cbm', 'FCI', 'labour cost',
-                                   'raw material cost', 'utilities cost', 'COMd', 'MF yield', 'objective']
+                                   'H2O catalyst molar ratio', 'conversion', 'MF production', 'cost of heating',
+                                   'cost of cooling', 'cost of comp and pump', 'cp0_2018', 'Reactor Cbm', 'FCI',
+                                   'labour cost', 'raw material cost', 'utilities cost', 'COMd', 'MF yield',
+                                   'objective']
 
     def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, methanolCOratio, sleep, type):
 
@@ -365,7 +366,8 @@ class Reactor:
 
             # TAC
             ACCR = 0.163  # interest rate i = 0.1, with 10 year plant life
-            TAC = COMd/self.MFproduction + ACCR * FCI / self.MFproduction
+            PR = self.MFproduction * 8000 # Annual Production Rate of MF
+            TAC = COMd/PR + ACCR * FCI / PR
 
             # Final Objective
             objective = TAC
@@ -374,15 +376,15 @@ class Reactor:
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, maximum bound = 5547.45 kg/h
             if limitreactorsize is None:
-                limitreactorsize = 1e8
+                limitreactorsize = 1e5
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
-                    objective = 1e8
+                    objective = 1e2
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
-                    objective = 1e8
+                    objective = 1e2
 
             if storedata:
                 data = self.store_to_data_store()
@@ -445,7 +447,8 @@ class Reactor:
 
             # TAC
             ACCR = 0.163  # interest rate i = 0.1, with 10 year plant life
-            TAC = COMd / self.MFproduction + ACCR * FCI / self.MFproduction
+            PR = self.MFproduction * 8000  # Annual Production Rate of MF
+            TAC = COMd / PR + ACCR * FCI / PR
 
             # Final Objective
             objective = TAC
@@ -454,16 +457,16 @@ class Reactor:
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
             if limitreactorsize is None:
-                limitreactorsize = 1e8
+                limitreactorsize = 1e5
 
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
-                    objective = 1e8
+                    objective = 1e2
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
-                    objective = 1e8
+                    objective = 1e2
 
             if storedata:
                 data = self.store_to_data_store()
@@ -526,7 +529,8 @@ class Reactor:
 
             # TAC
             ACCR = 0.163  # interest rate i = 0.1, with 10 year plant life
-            TAC = COMd / self.MFproduction + ACCR * FCI / self.MFproduction
+            PR = self.MFproduction * 8000  # Annual Production Rate of MF
+            TAC = COMd / PR + ACCR * FCI / PR
 
             # Final Objective
             objective = TAC
@@ -535,16 +539,16 @@ class Reactor:
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
             if limitreactorsize is None:
-                limitreactorsize = 1e8
+                limitreactorsize = 1e5
 
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
-                    objective = 1e8
+                    objective = 1e2
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
-                    objective = 1e8
+                    objective = 1e2
 
             if storedata:
                 data = self.store_to_data_store()
@@ -607,7 +611,8 @@ class Reactor:
 
             # TAC
             ACCR = 0.163  # interest rate i = 0.1, with 10 year plant life
-            TAC = COMd / self.MFproduction + ACCR * FCI / self.MFproduction
+            PR = self.MFproduction * 8000  # Annual Production Rate of MF
+            TAC = COMd / PR + ACCR * FCI / PR
 
             # Final Objective
             objective = TAC
@@ -616,16 +621,16 @@ class Reactor:
             # MF production from base case = 5438.6877 kg/h
             # Allow 2% error, minimum bound = 5329.76 kg/h, more MF is assumed better (hence no upper bound)
             if limitreactorsize is None:
-                limitreactorsize = 1e8
+                limitreactorsize = 1e5
 
             if type == 'pfr':
                 if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
-                    objective = 1e8
+                    objective = 1e2
             else:
                 if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
                         self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
-                    objective = 1e8
+                    objective = 1e2
 
             if storedata:
                 data = self.store_to_data_store()
@@ -655,6 +660,7 @@ class Reactor:
 
         # Constraint
         carbonylation_vap = self.carbonylation_vap
+        h20catalystmoleratio = self.h20catalystmoleratio
 
         # Other variables
         reactorsize = self.reactorsize
@@ -665,7 +671,7 @@ class Reactor:
         MFproduction = self.MFproduction
 
         return [inlettemp, catalystweight, residencetime, reactorP, methanolCOratio, reactorsize, reactortemp,
-                carbonylation_vap, conversion, MFproduction]
+                carbonylation_vap, h20catalystmoleratio, conversion, MFproduction]
 
     def save_data_store_pkl(self, data):
         with open('data_store.pkl', 'wb') as handle:

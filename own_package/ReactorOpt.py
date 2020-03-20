@@ -293,12 +293,15 @@ def run_sensitivity_analysis_bestVector(sleep, best, type, basecase, limitreacto
 
 
 #run_sensitivity_analysis(sleep=0.5, type='cstr', basecase=True, limitreactorsize=None)
-run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr', sensitivityanalysis=True, basecase=True, limitreactorsize=None)
-#run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, pso_size=50, ga=True, type='pfr', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
-#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr2', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
-#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=30, pso_size=300, ga=True, type='isothermalcstr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
-
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, pso_size=50, ga=True, type='pfr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr2', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='isothermalcstr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
+run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, pso_size=50, ga=True, type='pfr', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr2', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='isothermalcstr', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
 # run_sensitivity_analysis(sleep=0.3)
-# best = [110, 0.0010888834361106087, 3.999155489574233, 4000]
-# get_data_from_hysys(best=best, sleep=1, type='cstr')
-# run_sensitivity_analysis_bestVector(sleep=0.3, best=best, type='cstr', basecase=True, limitreactorsize=None)
+#best = [90.6914089548343, 0.005486940833108319, 3.2472266019851004, 2618.496013152172]
+#get_data_from_hysys(best=best, basecase=True, sleep=1, type='cstr', limitreactorsize=None)
+#run_sensitivity_analysis_bestVector(sleep=0.5, best=best, type='cstr', basecase=True, limitreactorsize=None)
