@@ -59,7 +59,7 @@ class Reactor:
                                    'methanol CO ratio', 'reactor size', 'reactor temp', 'carbonylation vap fraction',
                                    'H2O catalyst molar ratio', 'conversion', 'MF production', 'cost of heating',
                                    'cost of cooling', 'cost of comp and pump', 'cp0_2018', 'Reactor Cbm', 'FCI',
-                                   'labour cost', 'raw material cost', 'utilities cost', 'COMd', 'MF yield',
+                                   'labour cost', 'raw material cost', 'utilities cost', 'COMd', 'MF yield', 'TAC',
                                    'objective']
 
     def solve_reactor(self, inlettemp, catatlystweight, residencetime, reactorP, methanolCOratio, sleep, type):
@@ -399,6 +399,7 @@ class Reactor:
                 data.extend([C_UT])
                 data.extend([COMd])
                 data.extend([yield_of_MF])
+                data.extend([TAC])
                 data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -481,6 +482,7 @@ class Reactor:
                 data.extend([C_UT])
                 data.extend([COMd])
                 data.extend([yield_of_MF])
+                data.extend([TAC])
                 data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -563,6 +565,7 @@ class Reactor:
                 data.extend([C_UT])
                 data.extend([COMd])
                 data.extend([yield_of_MF])
+                data.extend([TAC])
                 data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
@@ -645,6 +648,7 @@ class Reactor:
                 data.extend([C_UT])
                 data.extend([COMd])
                 data.extend([yield_of_MF])
+                data.extend([TAC])
                 data.extend([objective])
                 self.data_store.append(data)
                 self.save_data_store_pkl(self.data_store)
