@@ -53,6 +53,14 @@ def optimize_reactor(storedata, sleep, pso_gen, pso_size, ga, type, basecase, li
         b_reactorP = [2000, 4000]
         b_methanolCOratio = [2, 100]
         p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
+    elif type == 'ionexchangeresin':
+        reactor = Reactor(Hycase=Hycase, reactor_name='R-100-4', sprd_name='CSTR_opt-4', type=type)
+        b_inlettemp = [69.85, 88.85]
+        b_catalystweight = [0, 0]
+        b_residencetime = [0.0015, 4]
+        b_reactorP = [5000, 5000]
+        b_methanolCOratio = [2, 100]
+        p_store = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
 
     params = {'c1': 1.5, 'c2': 1.5, 'wmin': 0.4, 'wmax': 0.9,
               'ga_iter_min': 5, 'ga_iter_max': 20, 'iter_gamma': 10,
@@ -133,6 +141,12 @@ def get_data_from_hysys(best, sleep, type, basecase, limitreactorsize):
                               methanolCOratio=best[4], sleep=sleep, type=type)
         reactor.reactor_results(storedata=True, type=type, limitreactorsize=limitreactorsize)
         read_col_data_store(name='isothermalcstr')
+    elif type == 'ionexchangeresin':
+        reactor = Reactor(Hycase=Hycase, reactor_name='R-100-4', sprd_name='CSTR_opt-4', type=type)
+        reactor.solve_reactor(inlettemp=best[0], catatlystweight=best[1], residencetime=best[2], reactorP=best[3],
+                              methanolCOratio=best[4], sleep=sleep, type=type)
+        reactor.reactor_results(storedata=True, type=type, limitreactorsize=limitreactorsize)
+        read_col_data_store(name='ionexchangeresin')
 
 
 def run_ReactorOpt(storedata, sleep, pso_gen, ga, pso_size, type, sensitivityanalysis, basecase, limitreactorsize):
@@ -167,7 +181,7 @@ def run_sensitivity_analysis(sleep, type, basecase, limitreactorsize):
         sprd_name = 'CSTR_opt-3'
     reactor = Reactor(Hycase=Hycase, reactor_name=reactor_name, sprd_name=sprd_name, type=type)
     b_catalystweight = 0.025
-    b_residencetime = 0.717
+    b_residencetime = 0.71
     b_reactorP = 4000
     b_methanolCOratio = 70.74
     for b_inlettemp in np.linspace(60, 110, 100):
@@ -196,7 +210,7 @@ def run_sensitivity_analysis(sleep, type, basecase, limitreactorsize):
         reactor.reactor_results(storedata=True, type=type, limitreactorsize=limitreactorsize)
     read_col_data_store(name='ResidenceTSensiAnalysis_{}'.format(type))
     reactor = Reactor(Hycase=Hycase, reactor_name=reactor_name, sprd_name=sprd_name, type=type)
-    b_residencetime = 0.717
+    b_residencetime = 0.71
     for b_reactorP in np.linspace(2000, 4000, 100):
         DVvector = [b_inlettemp, b_catalystweight, b_residencetime, b_reactorP, b_methanolCOratio]
         reactor.solve_reactor(inlettemp=DVvector[0], catatlystweight=DVvector[1], residencetime=DVvector[2],
@@ -292,16 +306,27 @@ def run_sensitivity_analysis_bestVector(sleep, best, type, basecase, limitreacto
         read_col_data_store(name='MethanolCOratioSensiAnalysisforBEST_{}'.format(type))
 
 
-#run_sensitivity_analysis(sleep=0.5, type='cstr', basecase=True, limitreactorsize=None)
-#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
-#run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, pso_size=50, ga=True, type='pfr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
-#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr2', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
-#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='isothermalcstr', sensitivityanalysis=True, basecase=False, limitreactorsize=None)
-#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
-#run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, pso_size=50, ga=True, type='pfr', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
-#run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr2', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
+# run_sensitivity_analysis(sleep=0.5, type='cstr', basecase=True, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='ionexchangeresin', sensitivityanalysis=False, basecase=False, limitreactorsize=100)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr', sensitivityanalysis=True, basecase=True, limitreactorsize=None)
+
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr', sensitivityanalysis=False, basecase=False, limitreactorsize=100)
+run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, pso_size=50, ga=True, type='pfr', sensitivityanalysis=False, basecase=False, limitreactorsize=100)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr2', sensitivityanalysis=False, basecase=False, limitreactorsize=100)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='isothermalcstr', sensitivityanalysis=False, basecase=False, limitreactorsize=100)
+
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr', sensitivityanalysis=False, basecase=False, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=1, pso_gen=100, pso_size=50, ga=True, type='pfr', sensitivityanalysis=False, basecase=False, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr2', sensitivityanalysis=False, basecase=False, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='isothermalcstr', sensitivityanalysis=False, basecase=False, limitreactorsize=None)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=150, pso_size=100, ga=True, type='cstr2', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
+run_ReactorOpt(storedata=False, sleep=1, pso_gen=150, pso_size=100, ga=True, type='pfr', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
+run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='cstr', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
+
 #run_ReactorOpt(storedata=False, sleep=0.5, pso_gen=100, pso_size=50, ga=True, type='isothermalcstr', sensitivityanalysis=True, basecase=False, limitreactorsize=100)
 # run_sensitivity_analysis(sleep=0.3)
-best = [82.39586068, 0.005486202, 3.77474314, 4000]
-#get_data_from_hysys(best=best, basecase=False, sleep=1, type='cstr', limitreactorsize=None)
-run_sensitivity_analysis_bestVector(sleep=0.5, best=best, type='cstr', basecase=True, limitreactorsize=None)
+
+
+#best = [95.19608753, 0.013832765, 0.352258934, 5000, 27.01066149]
+#get_data_from_hysys(best=best, basecase=False, sleep=1, type='ionexchangeresin', limitreactorsize=None)
+# run_sensitivity_analysis_bestVector(sleep=0.5, best=best, type='cstr', basecase=True, limitreactorsize=None)

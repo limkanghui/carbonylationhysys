@@ -22,13 +22,14 @@ class Reactor:
 
         # Constraints
         self.carbonylation_vap = self.spreadsheetdata.Cell('D2').CellValue * 3600
-        self.h20catalystmoleratio = self.spreadsheetdata.Cell('D3').CellValue
+        if not type == 'ionexchangeresin':
+            self.h20catalystmoleratio = self.spreadsheetdata.Cell('D3').CellValue
+        self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
 
         # Other variables
         self.E101duty = self.spreadsheetdata.Cell('B9').CellValue * 3600
         self.beforeinlettemp = self.spreadsheetdata.Cell('B10').CellValue
         self.reactorsize = self.spreadsheetdata.Cell('B11').CellValue * 3600
-        self.reactortemp = self.spreadsheetdata.Cell('B12').CellValue
         self.E100duty = self.spreadsheetdata.Cell('D9').CellValue * 3600
         self.E102duty = self.spreadsheetdata.Cell('D10').CellValue * 3600
         self.E104duty = self.spreadsheetdata.Cell('D11').CellValue * 3600
@@ -80,7 +81,8 @@ class Reactor:
 
         # Constraints
         self.carbonylation_vap = self.spreadsheetdata.Cell('D2').CellValue * 3600
-        self.h20catalystmoleratio = self.spreadsheetdata.Cell('D3').CellValue
+        if not type == 'ionexchangeresin':
+            self.h20catalystmoleratio = self.spreadsheetdata.Cell('D3').CellValue
 
         # Other variables
         self.E101duty = self.spreadsheetdata.Cell('B9').CellValue * 3600
@@ -111,7 +113,7 @@ class Reactor:
         self.conversion = self.spreadsheetdata.Cell('D5').CellValue
         self.MFproduction = self.spreadsheetdata.Cell('D6').CellValue * 3600
 
-        self.store_to_data_store()
+        self.store_to_data_store(type)
 
     def reactor_design(self, type):
         # CSTR modelled as a pressure vessel
@@ -155,7 +157,7 @@ class Reactor:
             maxstress = 13100  # in psi
 
         Di = 1  # initialize Di = 1m
-        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr':
+        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr' or type == 'ionexchangeresin':
             # Assume cylindrical height to diameter is 3:1
             def internalDfunction(D):
                 return math.pi * (D / 2) ** 2 * (3 * D) - self.reactorsize
@@ -184,7 +186,7 @@ class Reactor:
         elif Di * 3.28084 <= 12:
             shell_thickness = max(1 / 2, shell_thickness)
         ts = 1
-        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr':
+        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr' or type == 'ionexchangeresin':
             # Consider wind and earthquake for vertical column
             def twfunc(tw):
                 return tw - 0.22 * (Di + 2 * shell_thickness + tw + 1 / 4 + 18) * ((Di) * 3) ** 2 / (
@@ -219,7 +221,7 @@ class Reactor:
         k2 = 0.4479
         k3 = 0.0004
 
-        if type == 'cstr' or type == 'cstr2':
+        if type == 'cstr' or type == 'cstr2' or type == 'ionexchangeresin':
             # Using Reactor-mixer values from Appendix A of turton's tb
             # Volume between 0.04 and 60 m3
             k1 = 4.7116
@@ -293,7 +295,7 @@ class Reactor:
         B1 = 2.25
         B2 = 1.82
 
-        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr':
+        if type == 'cstr' or type == 'cstr2' or type == 'isothermalcstr' or type == 'ionexchangeresin':
             # Bare module factor for vertical process vessel
             B1 = 2.25
             B2 = 1.82
@@ -373,21 +375,26 @@ class Reactor:
             objective = TAC
 
             # Apply Constraints
-            # MF production from base case = 5438.6877 kg/h
-            # Allow 2% error, minimum bound = 5329.76 kg/h, maximum bound = 5547.45 kg/h
+            # MF production from base case = 5440.1051 kg/h
+            # Allow 2% error, minimum bound = 5331.30 kg/h, maximum bound = 5548.91 kg/h
             if limitreactorsize is None:
                 limitreactorsize = 1e5
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio or self.reactortemp > 110:
+                    objective = 1e2
+            elif type == 'ionexchangeresin':
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.reactortemp > 89.85:
                     objective = 1e2
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5 or \
+                        self.reactortemp > 110:
                     objective = 1e2
 
             if storedata:
-                data = self.store_to_data_store()
+                data = self.store_to_data_store(type)
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
@@ -461,16 +468,21 @@ class Reactor:
                 limitreactorsize = 1e5
 
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio or self.reactortemp > 110:
+                    objective = 1e2
+            elif type == 'ionexchangeresin':
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.reactortemp > 89.85:
                     objective = 1e2
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5 or \
+                        self.reactortemp > 110:
                     objective = 1e2
 
             if storedata:
-                data = self.store_to_data_store()
+                data = self.store_to_data_store(type)
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
@@ -544,16 +556,21 @@ class Reactor:
                 limitreactorsize = 1e5
 
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio or self.reactortemp > 110:
+                    objective = 1e2
+            elif type == 'ionexchangeresin':
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.reactortemp > 89.85:
                     objective = 1e2
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5 or \
+                        self.reactortemp > 110:
                     objective = 1e2
 
             if storedata:
-                data = self.store_to_data_store()
+                data = self.store_to_data_store(type)
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
@@ -627,16 +644,21 @@ class Reactor:
                 limitreactorsize = 1e5
 
             if type == 'pfr':
-                if self.carbonylation_vap > 0.05 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio or self.reactortemp > 110:
+                    objective = 1e2
+            elif type == 'ionexchangeresin':
+                if self.carbonylation_vap > 0.05 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.reactortemp > 89.85:
                     objective = 1e2
             else:
-                if self.carbonylation_vap > 0 or self.MFproduction < 5329.76 or self.MFproduction > 5547.45 or \
-                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5:
+                if self.carbonylation_vap > 0 or self.MFproduction < 5382.39 or self.MFproduction > 5602.08 or \
+                        self.reactorsize > limitreactorsize or self.h20catalystmoleratio > 0.5 or \
+                        self.reactortemp > 110:
                     objective = 1e2
 
             if storedata:
-                data = self.store_to_data_store()
+                data = self.store_to_data_store(type)
                 data.extend([cost_of_heating])
                 data.extend([cost_of_cooling])
                 data.extend([cost_of_comp_and_pump_duties])
@@ -654,7 +676,7 @@ class Reactor:
                 self.save_data_store_pkl(self.data_store)
         return objective
 
-    def store_to_data_store(self):
+    def store_to_data_store(self, type):
         # Decision Variables
         inlettemp = self.inlettemp
         catalystweight = self.catalystweight
@@ -664,11 +686,14 @@ class Reactor:
 
         # Constraint
         carbonylation_vap = self.carbonylation_vap
-        h20catalystmoleratio = self.h20catalystmoleratio
+        if not type == 'ionexchangeresin':
+            h20catalystmoleratio = self.h20catalystmoleratio
+        else: h20catalystmoleratio = -1
+        reactortemp = self.reactortemp
 
         # Other variables
         reactorsize = self.reactorsize
-        reactortemp = self.reactortemp
+
 
         # Objective
         conversion = self.conversion
